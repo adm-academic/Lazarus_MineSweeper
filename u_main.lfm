@@ -1,0 +1,30 @@
+object f_main: Tf_main
+  Left = 438
+  Height = 353
+  Top = 238
+  Width = 435
+  ActiveControl = DrawGrid1
+  Caption = 'f_main'
+  ClientHeight = 353
+  ClientWidth = 435
+  DesignTimePPI = 110
+  OnCreate = FormCreate
+  LCLVersion = '3.2.0.0'
+  object DrawGrid1: TDrawGrid
+    Left = 24
+    Height = 280
+    Top = 8
+    Width = 272
+    DefaultColWidth = 50
+    DefaultRowHeight = 50
+    ExtendedSelect = False
+    TabOrder = 0
+    OnDrawCell = DrawGrid1DrawCell
+  end
+  object Timer1: TTimer
+    Interval = 15
+    OnTimer = Timer1Timer
+    Left = 336
+    Top = 40
+  end
+end
