@@ -28,3 +28,7 @@ lib/
 
 # Application bundle for Mac OS
 *.app/
+
+#Application Executabpe in Nix-Family-Systems
+Lazarus_MineSweeper
+
