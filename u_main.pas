@@ -18,11 +18,16 @@ type
     dg_game: TDrawGrid;
     Timer1: TTimer;
     tb_draw_bottom_matrix: TToggleBox;
+    tb_draw_top_matrix: TToggleBox;
+    tb_draw_mixed_matrix: TToggleBox;
     procedure b_bottom_matrix_generateClick(Sender: TObject);
+    procedure b_top_matrix_generateClick(Sender: TObject);
     procedure dg_gameDrawCell(Sender: TObject; aCol, aRow: Integer;
       aRect: TRect; aState: TGridDrawState);
     procedure FormCreate(Sender: TObject);
     procedure tb_draw_bottom_matrixChange(Sender: TObject);
+    procedure tb_draw_mixed_matrixChange(Sender: TObject);
+    procedure tb_draw_top_matrixChange(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
 
@@ -49,9 +54,9 @@ type
                    BC_INSTALLED_MINE = 10,
                    BC_EXPLODED_MINE  = 1010
                  );
-  TTop_Cell    = ( TC_CLOSED  = 0,
-                   TC_FLAGGED = 1,
-                   TC_OPENED  = 10
+  TTop_Cell    = ( TC_UNKNOWN  = 0,
+                   TC_FLAGGED  = 1,
+                   TC_OPENED   = 10
                  );
   TBottom_Matrix = array of array of TBottom_Cell;
   TTop_Matrix    = array of array of TTop_Cell;
@@ -122,15 +127,15 @@ begin
                                       );
    // перед началом подсчёта установим счётчик соседних мин в ноль
    neighbors_counter:=0;
-   // у ячейки есть 8 соседей, если она находится не на границе матрицы
-   // проверяем на наличие мин всех соседних ячеек, с учётом границы.
-   // соседние клетки могут быть определены через таблицу смещений координат.
+   // у ячейки есть 8 соседей, если она находится не на границе матрицы.
+   // Проверяем на наличие мин всех соседних ячеек, с учётом границы.
+   // Очевидно что соседние клетки могут быть определены через таблицу смещений координат.
    // (-1, -1), (-1, 0), (-1,+1)
    // ( 0, -1), ( y, x), ( 0,+1)
    // (+1, -1), (+1, 0), (+1,+1)
-   // выполним вычисления прямым заданием в коде, не прибегая к массиву смещений
-   // это нарушит принцип DRY и сделает код повторяющимся,
-   // но зато код будет более наглядным для понимания
+   // Мы выполним вычисления прямым заданием в коде, не прибегая к массиву смещений.
+   // Это нарушит принцип DRY и сделает код повторяющимся,
+   // но зато код будет более наглядным для понимания.
    dy:=-1; dx:=-1;
    ny:=y+dy; nx:=x+dx;
    if ( (ny>=0) and (ny<bottom_matrix_height) ) and
@@ -187,7 +192,76 @@ begin
         if ( in_cell_mine(ny,nx) )  then
            inc( neighbors_counter );
 
+   // положим в возвращаемую ячейку памяти подсчитанное нами число соседей для ячейки
    Result:=neighbors_counter;
+end;
+
+procedure generate_bottom_matrix( mheight,mwidth:integer );
+/// генерируем нижнюю матрицу
+var
+  i, yy, xx : integer;
+  mine_installed: boolean = False;
+begin
+  /// установим размерность нижней матрицы и перераспределим оперативную память
+  bottom_matrix_width:=mwidth;
+  bottom_matrix_height:=mheight;
+  SetLength(bottom_matrix, bottom_matrix_height , bottom_matrix_width );
+
+  /// окей, теперь нужно очистить нижнюю матрицу, заполнив её
+  /// безмятежно чистою водою в каждой из ячеек матрицы
+  for yy:=0 to bottom_matrix_height-1 do
+    for xx:=0 to bottom_matrix_width-1 do
+      begin
+         bottom_matrix[yy,xx] := BC_EMPTY;
+      end;
+
+  // теперь расположим на нижней матрице N_mines мин, но так чтобы ни одна мина
+  // не попала на другую при установке и чтобы их на матрице было ровно N_mines
+  for i:=1 to N_mines do
+    begin
+       mine_installed:=False;
+       while not mine_installed do
+       begin
+          yy := RandomRange(0,bottom_matrix_height);
+          xx := RandomRange(0,bottom_matrix_width);
+          if ( in_cell_mine(yy,xx) ) then
+             continue;
+          throw_mine(yy,xx);
+          mine_installed := True;
+       end;
+    end;
+  /// на нижней матрице расставлены мины !
+
+  // теперь инициализируем ячейки с циферками !
+  for yy:=0 to bottom_matrix_height-1 do
+    for xx:=0 to bottom_matrix_width-1 do
+      begin
+         if not in_cell_mine(yy,xx) then // если в текущей ячейке нету мины
+           if get_neighbors_count(yy,xx)<>0 then // если кол-во соседей для текущей ячеки неравно нулю
+             bottom_matrix[yy,xx]:= // В текущую ячейку нужно поместить перечисление, которое кодирует число соседей
+                   TBottom_Cell(get_neighbors_count(yy,xx)); // Воспользуемся нашими хитрыми значениями указанными для перечисления
+                                                             // TBottom_Cell и с помощью приведения типов преобразуем число соседей
+                                                             // текущей ячейки в конкретное значение перечисления.
+
+      end;
+end;
+
+procedure generate_top_matrix( mheight,mwidth:integer );
+var
+   i, yy, xx : integer;
+begin
+  /// установим размерность верхней матрицы и перераспределим оперативную память
+  top_matrix_width:=mwidth;
+  top_matrix_height:=mheight;
+  SetLength(top_matrix, top_matrix_height , top_matrix_width );
+
+  /// окей, теперь нужно очистить верхнюю матрицу, заполнив её
+  /// пустыми блоками.
+  for yy:=0 to top_matrix_height-1 do
+    for xx:=0 to top_matrix_width-1 do
+      begin
+         top_matrix[yy,xx] := TC_UNKNOWN;
+      end;
 end;
 
 ///------------------------------------------------------
@@ -206,7 +280,15 @@ begin
   y := aRow;
   x := aCol;
 
-  if paint_bottom_matrix then
+  if paint_mixed_matrix then
+    begin
+      ShowMessage('paint mixed matrix');
+    end
+  else if paint_top_matrix then
+    begin
+      ShowMessage('paint top matrix');
+    end
+  else if paint_bottom_matrix then
     begin
       if ( (y<0)or(y>=bottom_matrix_height) ) or
         ( (x<0)or(x>=bottom_matrix_width)  ) then
@@ -248,50 +330,21 @@ begin
 end;
 
 procedure Tf_main.b_bottom_matrix_generateClick(Sender: TObject);
-/// генерируем нижнюю матрицу
-var
-  i, yy, xx : integer;
-  mine_installed: boolean = False;
-
 begin
-  /// установим размерность матрицы и перераспределим оперативную память
-  bottom_matrix_width:=self.dg_game.ColCount;
-  bottom_matrix_height:=self.dg_game.RowCount;
-  SetLength(bottom_matrix, bottom_matrix_height , bottom_matrix_width );
-  /// окей, теперь нужно очистить нижнюю матрицу, заполнив её
-  /// безмятежно чистою водою в каждой из ячеек матрицы
-  for yy:=0 to bottom_matrix_height-1 do
-    for xx:=0 to bottom_matrix_width-1 do
-      begin
-         bottom_matrix[yy,xx] := BC_EMPTY;
-      end;
-  // теперь расположим на нижней матрице N_mines мин, но так чтобы ни одна мина
-  // не попала на другую при установке и чтобы их на матрице было ровно N_mines
-  for i:=1 to N_mines do
-    begin
-       mine_installed:=False;
-       while not mine_installed do
-       begin
-          yy := RandomRange(0,bottom_matrix_height);
-          xx := RandomRange(0,bottom_matrix_width);
-          if ( in_cell_mine(yy,xx) ) then
-             continue;
-          throw_mine(yy,xx);
-          mine_installed := True;
-       end;
-    end;
-  /// на нижней матрице расставлены мины !
+  generate_bottom_matrix(self.dg_game.RowCount,self.dg_game.ColCount);
+end;
 
+procedure Tf_main.b_top_matrix_generateClick(Sender: TObject);
+begin
+  generate_top_matrix(self.dg_game.RowCount,self.dg_game.ColCount);
+end;
 
-  // теперь инициализируем клетки с циферками !
-  for yy:=0 to bottom_matrix_height-1 do
-    for xx:=0 to bottom_matrix_width-1 do
-      begin
-         if not in_cell_mine(yy,xx) then
-           if get_neighbors_count(yy,xx)<>0 then
-             bottom_matrix[yy,xx]:= TBottom_Cell(get_neighbors_count(yy,xx));
-      end;
-
+procedure Tf_main.tb_draw_mixed_matrixChange(Sender: TObject);
+begin
+  if ( (Sender as TToggleBox).Checked ) then
+    paint_mixed_matrix:=true
+  else
+    paint_mixed_matrix:=false;
 end;
 
 procedure Tf_main.tb_draw_bottom_matrixChange(Sender: TObject);
@@ -300,6 +353,14 @@ begin
     paint_bottom_matrix:=true
   else
     paint_bottom_matrix:=false;
+end;
+
+procedure Tf_main.tb_draw_top_matrixChange(Sender: TObject);
+begin
+  if ( (Sender as TToggleBox).Checked ) then
+    paint_top_matrix:=true
+  else
+    paint_top_matrix:=false;
 end;
 
 
