@@ -6,18 +6,23 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Grids, ExtCtrls,
-  Types, Math;
+  StdCtrls, Types, Math;
 
 type
 
   { Tf_main }
 
   Tf_main = class(TForm)
-    DrawGrid1: TDrawGrid;
+    b_bottom_matrix_generate: TButton;
+    b_top_matrix_generate: TButton;
+    dg_game: TDrawGrid;
     Timer1: TTimer;
-    procedure DrawGrid1DrawCell(Sender: TObject; aCol, aRow: Integer;
+    tb_draw_bottom_matrix: TToggleBox;
+    procedure b_bottom_matrix_generateClick(Sender: TObject);
+    procedure dg_gameDrawCell(Sender: TObject; aCol, aRow: Integer;
       aRect: TRect; aState: TGridDrawState);
     procedure FormCreate(Sender: TObject);
+    procedure tb_draw_bottom_matrixChange(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
 
@@ -51,6 +56,18 @@ type
   TBottom_Matrix = array of array of TBottom_Cell;
   TTop_Matrix    = array of array of TTop_Cell;
   //...
+  EOutsideOfMatrix = class(Exception);
+  //...
+
+var
+  bottom_matrix : TBottom_Matrix; // нижняя матрица
+  top_matrix : TTop_Matrix;       // верхняя матрица
+  bottom_matrix_width, bottom_matrix_height, // размеры нижней матрицы
+  top_matrix_width, top_matrix_height: integer; // размеры верхней матрицы
+  paint_bottom_matrix : boolean = False; // флаг отрисовки нижней матрицы
+  paint_top_matrix : boolean = False;    // флаг отрисовки верхнйе матрицы
+  paint_mixed_matrix : boolean = False;  // флаг смешаной отрисовки матриц, как полагается игре сапёр
+  N_mines : integer = 7; // количество располагаемых в нижней матрице мин
 
 implementation
 
@@ -58,12 +75,231 @@ implementation
 
 { Tf_main }
 
-procedure Tf_main.DrawGrid1DrawCell(Sender: TObject; aCol, aRow: Integer;
-  aRect: TRect; aState: TGridDrawState);
+///------------------------------------------------------
+function in_cell_mine(y,x:integer):boolean;
+/// возвращает истину если в ячейке есть мина
+/// генерирует исключение при выходе координат за пределы размерности матрицы
 begin
-  DrawGrid1.Canvas.Brush.Style:=bsSolid;
-  DrawGrid1.Canvas.Brush.Color:=RandomRange( -$7FFFFFFF-1,$7FFFFFFF );
-  DrawGrid1.Canvas.Ellipse(aRect);
+     if ( (y<0)or(y>=bottom_matrix_height) ) or
+        ( (x<0)or(x>=bottom_matrix_width)  ) then
+        raise EOutsideOfMatrix.Create('Координаты y=' + IntToStr(y) +
+                                      ',x=' + IntToStr(x) + ' выходят за пределы матрицы, имеющей размер '+
+                                      IntToStr(bottom_matrix_height)+'x'+IntToStr(bottom_matrix_width)
+                                      );
+     if ( bottom_matrix[y,x]=BC_INSTALLED_MINE ) or
+        ( bottom_matrix[y,x]=BC_EXPLODED_MINE )
+        then
+           Result:=True
+     else
+           Result:=False;
+end;
+
+procedure throw_mine(y,x:integer);
+/// устанавливает мину в ячейку, даже если там есть другое значение, или другая мина
+/// генерирует исключение при выходе координат за пределы размерности матрицы
+begin
+   if ( (y<0)or(y>=bottom_matrix_height) ) or
+        ( (x<0)or(x>=bottom_matrix_width)  ) then
+        raise EOutsideOfMatrix.Create('Координаты y=' + IntToStr(y) +
+                                      ',x=' + IntToStr(x) + ' выходят за пределы матрицы, имеющей размер '+
+                                      IntToStr(bottom_matrix_height)+'x'+IntToStr(bottom_matrix_width)
+                                      );
+   bottom_matrix[y,x]:=BC_INSTALLED_MINE;
+end;
+
+function get_neighbors_count(y,x:integer): integer;
+/// генерирует исключение при выходе координат за пределы размерности матрицы
+var
+  dy, dx,
+  ny, nx : integer;
+  neighbors_counter : integer;
+begin
+   if ( (y<0)or(y>=bottom_matrix_height) ) or
+        ( (x<0)or(x>=bottom_matrix_width)  ) then
+        raise EOutsideOfMatrix.Create('Координаты y=' + IntToStr(y) +
+                                      ',x=' + IntToStr(x) + ' выходят за пределы матрицы, имеющей размер '+
+                                      IntToStr(bottom_matrix_height)+'x'+IntToStr(bottom_matrix_width)
+                                      );
+   // перед началом подсчёта установим счётчик соседних мин в ноль
+   neighbors_counter:=0;
+   // у ячейки есть 8 соседей, если она находится не на границе матрицы
+   // проверяем на наличие мин всех соседних ячеек, с учётом границы.
+   // соседние клетки могут быть определены через таблицу смещений координат.
+   // (-1, -1), (-1, 0), (-1,+1)
+   // ( 0, -1), ( y, x), ( 0,+1)
+   // (+1, -1), (+1, 0), (+1,+1)
+   // выполним вычисления прямым заданием в коде, не прибегая к массиву смещений
+   // это нарушит принцип DRY и сделает код повторяющимся,
+   // но зато код будет более наглядным для понимания
+   dy:=-1; dx:=-1;
+   ny:=y+dy; nx:=x+dx;
+   if ( (ny>=0) and (ny<bottom_matrix_height) ) and
+      ( (nx>=0) and (nx<bottom_matrix_width) ) then
+        if ( in_cell_mine(ny,nx) )  then
+           inc( neighbors_counter );
+
+   dy:= 0; dx:=-1;
+   ny:=y+dy; nx:=x+dx;
+   if ( (ny>=0) and (ny<bottom_matrix_height) ) and
+      ( (nx>=0) and (nx<bottom_matrix_width) ) then
+        if ( in_cell_mine(ny,nx) )  then
+           inc( neighbors_counter );
+
+   dy:=+1; dx:=-1;
+   ny:=y+dy; nx:=x+dx;
+   if ( (ny>=0) and (ny<bottom_matrix_height) ) and
+      ( (nx>=0) and (nx<bottom_matrix_width) ) then
+        if ( in_cell_mine(ny,nx) )  then
+           inc( neighbors_counter );
+
+   dy:=+1; dx:= 0;
+   ny:=y+dy; nx:=x+dx;
+   if ( (ny>=0) and (ny<bottom_matrix_height) ) and
+      ( (nx>=0) and (nx<bottom_matrix_width) ) then
+        if ( in_cell_mine(ny,nx) )  then
+           inc( neighbors_counter );
+
+   dy:=+1; dx:=+1;
+   ny:=y+dy; nx:=x+dx;
+   if ( (ny>=0) and (ny<bottom_matrix_height) ) and
+      ( (nx>=0) and (nx<bottom_matrix_width) ) then
+        if ( in_cell_mine(ny,nx) )  then
+           inc( neighbors_counter );
+
+   dy:= 0; dx:=+1;
+   ny:=y+dy; nx:=x+dx;
+   if ( (ny>=0) and (ny<bottom_matrix_height) ) and
+      ( (nx>=0) and (nx<bottom_matrix_width) ) then
+        if ( in_cell_mine(ny,nx) )  then
+           inc( neighbors_counter );
+
+   dy:=-1; dx:=+1;
+   ny:=y+dy; nx:=x+dx;
+   if ( (ny>=0) and (ny<bottom_matrix_height) ) and
+      ( (nx>=0) and (nx<bottom_matrix_width) ) then
+        if ( in_cell_mine(ny,nx) )  then
+           inc( neighbors_counter );
+
+   dy:=-1; dx:= 0;
+   ny:=y+dy; nx:=x+dx;
+   if ( (ny>=0) and (ny<bottom_matrix_height) ) and
+      ( (nx>=0) and (nx<bottom_matrix_width) ) then
+        if ( in_cell_mine(ny,nx) )  then
+           inc( neighbors_counter );
+
+   Result:=neighbors_counter;
+end;
+
+///------------------------------------------------------
+
+procedure Tf_main.dg_gameDrawCell(Sender: TObject; aCol, aRow: Integer;
+  aRect: TRect; aState: TGridDrawState);
+/// генерирует исключение при выходе координат за пределы размерности матрицы
+var
+  y,x,i: integer;
+  painting_str : string;
+  ts : TTextStyle;
+begin
+  //dg_game.Canvas.Brush.Style:=bsSolid;
+  //dg_game.Canvas.Brush.Color:=RandomRange( -$7FFFFFFF-1,$7FFFFFFF );
+  //dg_game.Canvas.Ellipse(aRect);
+  y := aRow;
+  x := aCol;
+
+  if paint_bottom_matrix then
+    begin
+      if ( (y<0)or(y>=bottom_matrix_height) ) or
+        ( (x<0)or(x>=bottom_matrix_width)  ) then
+        raise EOutsideOfMatrix.Create('Координаты y=' + IntToStr(y) +
+                                      ',x=' + IntToStr(x) + ' выходят за пределы матрицы, имеющей размер '+
+                                      IntToStr(bottom_matrix_height)+'x'+IntToStr(bottom_matrix_width)
+                                      );
+      case bottom_matrix[y,x] of
+        BC_EMPTY  : painting_str:='~~~' ;
+        BC_NEAR_1 : painting_str:='1' ;
+        BC_NEAR_2 : painting_str:='2' ;
+        BC_NEAR_3 : painting_str:='3' ;
+        BC_NEAR_4 : painting_str:='4' ;
+        BC_NEAR_5 : painting_str:='5' ;
+        BC_NEAR_6 : painting_str:='6' ;
+        BC_NEAR_7 : painting_str:='7' ;
+        BC_NEAR_8 : painting_str:='8' ;
+        BC_INSTALLED_MINE : painting_str:='*' ;
+        BC_EXPLODED_MINE  : painting_str:='X' ;
+      end;
+
+
+      dg_game.Canvas.Brush.Style:=bsSolid;
+      dg_game.Canvas.Brush.Color:=clAqua;
+      dg_game.Canvas.FillRect(aRect);
+
+      ts :=  dg_game.Canvas.TextStyle;
+      ts.Alignment:=taCenter;
+      ts.Layout:=tlCenter;
+
+      dg_game.Canvas.TextRect(aRect,
+                              aRect.Left+aRect.Width div 2,
+                              aRect.Top+aRect.Height div 2,
+                              painting_str,
+                              ts
+                              );
+    end;
+
+end;
+
+procedure Tf_main.b_bottom_matrix_generateClick(Sender: TObject);
+/// генерируем нижнюю матрицу
+var
+  i, yy, xx : integer;
+  mine_installed: boolean = False;
+
+begin
+  /// установим размерность матрицы и перераспределим оперативную память
+  bottom_matrix_width:=self.dg_game.ColCount;
+  bottom_matrix_height:=self.dg_game.RowCount;
+  SetLength(bottom_matrix, bottom_matrix_height , bottom_matrix_width );
+  /// окей, теперь нужно очистить нижнюю матрицу, заполнив её
+  /// безмятежно чистою водою в каждой из ячеек матрицы
+  for yy:=0 to bottom_matrix_height-1 do
+    for xx:=0 to bottom_matrix_width-1 do
+      begin
+         bottom_matrix[yy,xx] := BC_EMPTY;
+      end;
+  // теперь расположим на нижней матрице N_mines мин, но так чтобы ни одна мина
+  // не попала на другую при установке и чтобы их на матрице было ровно N_mines
+  for i:=1 to N_mines do
+    begin
+       mine_installed:=False;
+       while not mine_installed do
+       begin
+          yy := RandomRange(0,bottom_matrix_height);
+          xx := RandomRange(0,bottom_matrix_width);
+          if ( in_cell_mine(yy,xx) ) then
+             continue;
+          throw_mine(yy,xx);
+          mine_installed := True;
+       end;
+    end;
+  /// на нижней матрице расставлены мины !
+
+
+  // теперь инициализируем клетки с циферками !
+  for yy:=0 to bottom_matrix_height-1 do
+    for xx:=0 to bottom_matrix_width-1 do
+      begin
+         if not in_cell_mine(yy,xx) then
+           if get_neighbors_count(yy,xx)<>0 then
+             bottom_matrix[yy,xx]:= TBottom_Cell(get_neighbors_count(yy,xx));
+      end;
+
+end;
+
+procedure Tf_main.tb_draw_bottom_matrixChange(Sender: TObject);
+begin
+  if ( (Sender as TToggleBox).Checked ) then
+    paint_bottom_matrix:=true
+  else
+    paint_bottom_matrix:=false;
 end;
 
 
@@ -72,9 +308,11 @@ begin
   Randomize;
 end;
 
+
+
 procedure Tf_main.Timer1Timer(Sender: TObject);
 begin
-  self.DrawGrid1.Repaint;
+  self.dg_game.Repaint;
 end;
 
 end.
