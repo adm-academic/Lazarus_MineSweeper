@@ -1,13 +1,14 @@
 object f_main: Tf_main
-  Left = 302
-  Height = 555
-  Top = 145
-  Width = 670
+  Left = 396
+  Height = 517
+  Top = 112
+  Width = 435
   Caption = 'f_main'
-  ClientHeight = 555
-  ClientWidth = 670
+  ClientHeight = 517
+  ClientWidth = 435
   DesignTimePPI = 110
   OnCreate = FormCreate
+  OnPaint = FormPaint
   LCLVersion = '3.2.0.0'
   object dg_game: TDrawGrid
     Left = 16
@@ -26,51 +27,25 @@ object f_main: Tf_main
     ScrollBars = ssNone
     TabOrder = 0
     OnDrawCell = dg_gameDrawCell
+    OnMouseDown = dg_gameMouseDown
   end
-  object b_bottom_matrix_generate: TButton
-    Left = 56
+  object b_start: TButton
+    Left = 96
     Height = 32
     Top = 432
     Width = 286
-    Caption = 'Сгенерировать Bottom Matrix'
+    Caption = 'Начать игру сначала!'
     TabOrder = 1
-    OnClick = b_bottom_matrix_generateClick
+    OnClick = b_startClick
   end
-  object b_top_matrix_generate: TButton
-    Left = 56
-    Height = 29
-    Top = 464
-    Width = 286
-    Caption = 'Сгенерировать Top Matrix'
-    TabOrder = 2
-    OnClick = b_top_matrix_generateClick
-  end
-  object tb_draw_bottom_matrix: TToggleBox
-    Left = 360
-    Height = 29
-    Top = 432
-    Width = 286
-    Caption = 'Отрисовывать Bottom Matrix'
-    TabOrder = 3
-    OnChange = tb_draw_bottom_matrixChange
-  end
-  object tb_draw_top_matrix: TToggleBox
-    Left = 360
-    Height = 29
-    Top = 464
-    Width = 286
-    Caption = 'Отрисовывать Top Matrix'
-    TabOrder = 4
-    OnChange = tb_draw_top_matrixChange
-  end
-  object tb_draw_mixed_matrix: TToggleBox
-    Left = 360
-    Height = 29
-    Top = 496
-    Width = 286
-    Caption = 'Смешанная отрисовка матриц'
-    TabOrder = 5
-    OnChange = tb_draw_mixed_matrixChange
+  object lb_gamestate: TLabel
+    Left = 96
+    Height = 32
+    Top = 472
+    Width = 280
+    Alignment = taCenter
+    AutoSize = False
+    Caption = '...'
   end
   object Timer1: TTimer
     Interval = 15

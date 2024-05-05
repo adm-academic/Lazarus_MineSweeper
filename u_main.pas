@@ -13,21 +13,17 @@ type
   { Tf_main }
 
   Tf_main = class(TForm)
-    b_bottom_matrix_generate: TButton;
-    b_top_matrix_generate: TButton;
+    b_start: TButton;
     dg_game: TDrawGrid;
+    lb_gamestate: TLabel;
     Timer1: TTimer;
-    tb_draw_bottom_matrix: TToggleBox;
-    tb_draw_top_matrix: TToggleBox;
-    tb_draw_mixed_matrix: TToggleBox;
-    procedure b_bottom_matrix_generateClick(Sender: TObject);
-    procedure b_top_matrix_generateClick(Sender: TObject);
+    procedure b_startClick(Sender: TObject);
     procedure dg_gameDrawCell(Sender: TObject; aCol, aRow: Integer;
       aRect: TRect; aState: TGridDrawState);
+    procedure dg_gameMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     procedure FormCreate(Sender: TObject);
-    procedure tb_draw_bottom_matrixChange(Sender: TObject);
-    procedure tb_draw_mixed_matrixChange(Sender: TObject);
-    procedure tb_draw_top_matrixChange(Sender: TObject);
+    procedure FormPaint(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
 
@@ -41,6 +37,12 @@ var
 
 
 type
+  //..
+  TGame_State = ( GS_IDLE,
+                  GS_PLAY,
+                  GS_WIN,
+                  GS_LOSE
+                );
   //...
   TBottom_Cell = ( BC_EMPTY  = 0,
                    BC_NEAR_1 = 1,
@@ -69,10 +71,9 @@ var
   top_matrix : TTop_Matrix;       // верхняя матрица
   bottom_matrix_width, bottom_matrix_height, // размеры нижней матрицы
   top_matrix_width, top_matrix_height: integer; // размеры верхней матрицы
-  paint_bottom_matrix : boolean = False; // флаг отрисовки нижней матрицы
-  paint_top_matrix : boolean = False;    // флаг отрисовки верхнйе матрицы
-  paint_mixed_matrix : boolean = False;  // флаг смешаной отрисовки матриц, как полагается игре сапёр
   N_mines : integer = 7; // количество располагаемых в нижней матрице мин
+  game_state : TGame_State = GS_IDLE;
+  first_game_turn : boolean = False;
 
 implementation
 
@@ -264,103 +265,164 @@ begin
       end;
 end;
 
+// рекурсивная функция открывает текущую и все соседние
+// клетки, в которых нет мин
+// клетку с миной эта процедура не обрабатывает !
+procedure open_cell( y, x : integer);
+begin
+ if (y<0) or (y>=top_matrix_height) or  // если координата неправильная - выходим из процедуры
+    (x<0) or (x>=top_matrix_width) or
+             (y>=bottom_matrix_height) or
+             (y>=bottom_matrix_width) then
+               exit;
+
+ if (top_matrix[y,x]=TC_OPENED) then  //если клетка уже открытая - выходим из процедуры
+   exit;
+
+ if ( first_game_turn ) then  // первый ход должен не попадать на мину,
+                              // если попал - перегенерируем всю нижнюю матрицу
+   begin
+     while in_cell_mine(y,x) do
+       begin
+         generate_bottom_matrix(bottom_matrix_height,bottom_matrix_width);
+       end;
+     first_game_turn := false;
+   end;
+
+ if (bottom_matrix[y,x] = BC_EMPTY) then
+   begin
+    top_matrix[y,x] := TC_OPENED;
+    // (-1, -1), (-1, 0), (-1,+1)
+    // ( 0, -1), ( y, x), ( 0,+1)
+    // (+1, -1), (+1, 0), (+1,+1)
+    open_cell(y-1,x-1);open_cell(y-1,x+0);open_cell(y-1,x+1);
+    open_cell(y+0,x-1);                   open_cell(y+0,x+1);
+    open_cell(y+1,x-1);open_cell(y+1,x+0);open_cell(y+1,x+1);
+   end
+ else if ( QWord(bottom_matrix[y,x])>=QWord(BC_NEAR_1) )
+     and ( QWord(bottom_matrix[y,x])<=QWord(BC_NEAR_8) ) then
+   begin
+    top_matrix[y,x] := TC_OPENED;
+   end;
+end;
+
 ///------------------------------------------------------
 
 procedure Tf_main.dg_gameDrawCell(Sender: TObject; aCol, aRow: Integer;
   aRect: TRect; aState: TGridDrawState);
-/// генерирует исключение при выходе координат за пределы размерности матрицы
 var
   y,x,i: integer;
   painting_str : string;
   ts : TTextStyle;
 begin
-  //dg_game.Canvas.Brush.Style:=bsSolid;
-  //dg_game.Canvas.Brush.Color:=RandomRange( -$7FFFFFFF-1,$7FFFFFFF );
-  //dg_game.Canvas.Ellipse(aRect);
+
+  if (game_state<>GS_PLAY) and
+     (game_state<>GS_WIN)  and
+     (game_state<>GS_LOSE) then
+    exit;
+
   y := aRow;
   x := aCol;
 
-  if paint_mixed_matrix then
-    begin
-      ShowMessage('paint mixed matrix');
-    end
-  else if paint_top_matrix then
-    begin
-      ShowMessage('paint top matrix');
-    end
-  else if paint_bottom_matrix then
-    begin
-      if ( (y<0)or(y>=bottom_matrix_height) ) or
-        ( (x<0)or(x>=bottom_matrix_width)  ) then
-        raise EOutsideOfMatrix.Create('Координаты y=' + IntToStr(y) +
-                                      ',x=' + IntToStr(x) + ' выходят за пределы матрицы, имеющей размер '+
-                                      IntToStr(bottom_matrix_height)+'x'+IntToStr(bottom_matrix_width)
-                                      );
-      case bottom_matrix[y,x] of
-        BC_EMPTY  : painting_str:='~~~' ;
-        BC_NEAR_1 : painting_str:='1' ;
-        BC_NEAR_2 : painting_str:='2' ;
-        BC_NEAR_3 : painting_str:='3' ;
-        BC_NEAR_4 : painting_str:='4' ;
-        BC_NEAR_5 : painting_str:='5' ;
-        BC_NEAR_6 : painting_str:='6' ;
-        BC_NEAR_7 : painting_str:='7' ;
-        BC_NEAR_8 : painting_str:='8' ;
-        BC_INSTALLED_MINE : painting_str:='*' ;
-        BC_EXPLODED_MINE  : painting_str:='X' ;
-      end;
+  case top_matrix[y,x] of
+   TC_UNKNOWN : painting_str:='[ ]';
+   TC_FLAGGED : painting_str:='P';
+   TC_OPENED  : begin
+                  case bottom_matrix[y,x] of
+                    BC_EMPTY  : painting_str:='~' ;
+                    BC_NEAR_1 : painting_str:='1' ;
+                    BC_NEAR_2 : painting_str:='2' ;
+                    BC_NEAR_3 : painting_str:='3' ;
+                    BC_NEAR_4 : painting_str:='4' ;
+                    BC_NEAR_5 : painting_str:='5' ;
+                    BC_NEAR_6 : painting_str:='6' ;
+                    BC_NEAR_7 : painting_str:='7' ;
+                    BC_NEAR_8 : painting_str:='8' ;
+                    BC_INSTALLED_MINE : painting_str:='*' ;
+                    BC_EXPLODED_MINE  : painting_str:='X' ;
+                  end;
+                end;
+  end;
+  ts :=  dg_game.Canvas.TextStyle;
+  ts.Alignment:=taCenter;
+  ts.Layout:=tlCenter;
 
-
-      dg_game.Canvas.Brush.Style:=bsSolid;
-      dg_game.Canvas.Brush.Color:=clAqua;
-      dg_game.Canvas.FillRect(aRect);
-
-      ts :=  dg_game.Canvas.TextStyle;
-      ts.Alignment:=taCenter;
-      ts.Layout:=tlCenter;
-
-      dg_game.Canvas.TextRect(aRect,
-                              aRect.Left+aRect.Width div 2,
-                              aRect.Top+aRect.Height div 2,
-                              painting_str,
-                              ts
-                              );
-    end;
+  dg_game.Canvas.TextRect(aRect,
+                        aRect.Left+aRect.Width div 2,
+                        aRect.Top+aRect.Height div 2,
+                        painting_str,
+                        ts
+                        );
 
 end;
 
-procedure Tf_main.b_bottom_matrix_generateClick(Sender: TObject);
+procedure Tf_main.dg_gameMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var
+  aRow, aCol: integer;
+  yy, xx : integer;
 begin
+   // мышь обрабатываем только если режим игры GS_PLAY;
+   if ( game_state<>GS_PLAY) then exit;
+   // в эту процедуру передаются абсолютные координаты мыши всего DrawGrid-а
+   // нам нужно получить координаты ячейки, по которой щёлкнул пользователь
+   // что мы и делаем ниже...
+   aRow := Y div self.dg_game.DefaultRowHeight;
+   if (aRow<0) then aRow:=0;
+   if (aRow>=self.dg_game.DefaultRowHeight-1) then aRow:=self.dg_game.DefaultRowHeight-1;
+   aCol := X div self.dg_game.DefaultColWidth;
+   if (aCol<0) then aCol:=0;
+   if (aCol>=self.dg_game.DefaultColWidth-1) then aCol:=self.dg_game.DefaultRowHeight-1;
+
+   // здесь нам нужно ввести основной геймплей, то есть реакцию сапёра на нажатие кнопок
+   // будут работать только лэфт-клик и райт-клик, одновременный клик двух клавиш из оригинального
+   // сапёра я реализовывать не буду из-за относительной сложности нужного для этого кода.
+
+   // открываем ячейку, если внизу пусто, то рекурсивно открываем всех соседний ячейки
+   // всё в точности как в оригинальном сапёре
+   if ( Button=mbLeft ) then
+     if ( top_matrix[aRow,aCol]=TC_UNKNOWN ) then
+       begin
+        if ( not in_cell_mine(aRow,aCol) ) then // если внизу нету мины
+           open_cell(aRow,aCol) // откроем ячейку, рекурсивно если это нужно
+        else             // иначе, если внизу мина
+           begin
+             top_matrix[aRow,aCol]:=TC_OPENED;  // откроем ячейку
+             bottom_matrix[aRow,aCol]:=BC_EXPLODED_MINE; // мину переключим на подорваную мину
+             //!!!!!!!--------- обработка проигрыша в игре ------------------
+             game_state:=GS_LOSE;
+             for yy:=0 to top_matrix_height-1 do
+             for xx:=0 to top_matrix_width-1 do
+               top_matrix[yy,xx]:=TC_OPENED;
+             self.Repaint;
+             //!!!!!!!--------- обработка проигрыша в игре ------------------
+           end;
+       end;
+
+   // помечаем ячейку флагом или убираем флаг
+   if ( Button=mbRight ) then
+     if ( top_matrix[aRow,aCol]=TC_UNKNOWN ) then
+       top_matrix[aRow,aCol]:=TC_FLAGGED
+     else if ( top_matrix[aRow,aCol]=TC_FLAGGED ) then
+       top_matrix[aRow,aCol]:=TC_UNKNOWN;
+
+   //!!!!!!!----------- обработка выигрыша в игре ----------------
+
+   //!!!!!!!----------- обработка выигрыша в игре ----------------
+
+   // даём команду на перерисовку всего грида
+   self.dg_game.Repaint;
+
+end;
+
+procedure Tf_main.b_startClick(Sender: TObject);
+begin
+
   generate_bottom_matrix(self.dg_game.RowCount,self.dg_game.ColCount);
-end;
-
-procedure Tf_main.b_top_matrix_generateClick(Sender: TObject);
-begin
   generate_top_matrix(self.dg_game.RowCount,self.dg_game.ColCount);
-end;
-
-procedure Tf_main.tb_draw_mixed_matrixChange(Sender: TObject);
-begin
-  if ( (Sender as TToggleBox).Checked ) then
-    paint_mixed_matrix:=true
-  else
-    paint_mixed_matrix:=false;
-end;
-
-procedure Tf_main.tb_draw_bottom_matrixChange(Sender: TObject);
-begin
-  if ( (Sender as TToggleBox).Checked ) then
-    paint_bottom_matrix:=true
-  else
-    paint_bottom_matrix:=false;
-end;
-
-procedure Tf_main.tb_draw_top_matrixChange(Sender: TObject);
-begin
-  if ( (Sender as TToggleBox).Checked ) then
-    paint_top_matrix:=true
-  else
-    paint_top_matrix:=false;
+  game_state:=GS_PLAY;
+  first_game_turn:=True;
+  self.Repaint;
 end;
 
 
@@ -369,7 +431,18 @@ begin
   Randomize;
 end;
 
-
+procedure Tf_main.FormPaint(Sender: TObject);
+var
+  str_state: string = '';
+begin
+  case game_state of
+    GS_IDLE : str_state:='ОЖИДАНИЕ';
+    GS_PLAY : str_state:='ИГРАЕМ';
+    GS_LOSE : str_state:='ИГРА ПРОИГРАНА !';
+    GS_WIN  : str_state:='ВЫ ВЫИГРАЛИ !';
+  end;
+  self.lb_gamestate.Caption := str_state;
+end;
 
 procedure Tf_main.Timer1Timer(Sender: TObject);
 begin
