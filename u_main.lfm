@@ -1,7 +1,7 @@
 object f_main: Tf_main
-  Left = 396
+  Left = 316
   Height = 517
-  Top = 112
+  Top = 59
   Width = 435
   Caption = 'f_main'
   ClientHeight = 517
@@ -15,6 +15,7 @@ object f_main: Tf_main
     Height = 416
     Top = 8
     Width = 408
+    AutoEdit = False
     ColCount = 10
     DefaultColWidth = 40
     DefaultRowHeight = 40
