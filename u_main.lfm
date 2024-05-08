@@ -1,57 +1,47 @@
 object f_main: Tf_main
-  Left = 316
-  Height = 517
-  Top = 59
-  Width = 435
+  Left = 850
+  Height = 520
+  Top = 138
+  Width = 430
   Caption = 'f_main'
-  ClientHeight = 517
-  ClientWidth = 435
+  ClientHeight = 520
+  ClientWidth = 430
   DesignTimePPI = 110
-  OnCreate = FormCreate
-  OnPaint = FormPaint
   LCLVersion = '3.2.0.0'
-  object dg_game: TDrawGrid
+  object dg_refactored_game: TDrawGrid
     Left = 16
-    Height = 416
+    Height = 402
     Top = 8
-    Width = 408
-    AutoEdit = False
-    ColCount = 10
-    DefaultColWidth = 40
-    DefaultRowHeight = 40
-    DoubleBuffered = True
+    Width = 402
     ExtendedSelect = False
-    FixedCols = 0
-    FixedRows = 0
-    ParentDoubleBuffered = False
-    RowCount = 10
     ScrollBars = ssNone
     TabOrder = 0
-    OnDrawCell = dg_gameDrawCell
-    OnMouseDown = dg_gameMouseDown
   end
-  object b_start: TButton
-    Left = 96
+  object b_start_refactored: TButton
+    Left = 40
     Height = 32
-    Top = 432
-    Width = 286
-    Caption = 'Начать игру сначала!'
+    Top = 448
+    Width = 360
+    Caption = 'ОтРефакторенная версия. Начать!'
     TabOrder = 1
-    OnClick = b_startClick
+    OnClick = b_start_refactoredClick
   end
-  object lb_gamestate: TLabel
-    Left = 96
+  object b_unload_refactored: TButton
+    Left = 40
     Height = 32
-    Top = 472
-    Width = 280
+    Top = 480
+    Width = 360
+    Caption = 'Выгрузить объект minesweeper'
+    TabOrder = 2
+    OnClick = b_unload_refactoredClick
+  end
+  object lb_game_state: TLabel
+    Left = 16
+    Height = 40
+    Top = 408
+    Width = 401
     Alignment = taCenter
     AutoSize = False
-    Caption = '...'
-  end
-  object Timer1: TTimer
-    Interval = 15
-    OnTimer = Timer1Timer
-    Left = 16
-    Top = 432
+    Layout = tlCenter
   end
 end
