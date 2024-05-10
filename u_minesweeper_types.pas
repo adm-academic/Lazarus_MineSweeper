@@ -59,8 +59,15 @@ type
 
   TChord_Array = array of TChordCoord; // тип для хранения и передачи аккордов внутри приложения
 
-  // указатель на объект PNG-картинки
-  PPortableNetworkGraphic = ^TPortableNetworkGraphic;
+  { тип для хранения состояния ЗАЖАТЫХ клавиш мыши, нужен для корректной работы функции OnMouseMove }
+  TMouse_Keys_Active = (
+                      MKA_NONE  = 0,
+                      MKA_LEFT  = 1,
+                      MKA_RIGHT = 2,
+                      MKA_BOTH  = 3
+  );
+
+  PPortableNetworkGraphic = ^TPortableNetworkGraphic;// указатель на объект PNG-картинки
 
 implementation
 

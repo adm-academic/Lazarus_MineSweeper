@@ -46,6 +46,7 @@ begin
 end;
 
 
+
 procedure Tf_main.b_start_refactoredClick(Sender: TObject);
 begin
   if self.mine_sweeper<>nil then // если в памяти уже есть объект T_Mine_Sweeper, то его нужно выгрузить

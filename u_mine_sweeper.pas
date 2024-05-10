@@ -66,31 +66,35 @@ type
        top_matrix : TTop_Matrix;       // динамический массив верхней матрицы
        bottom_matrix : TBottom_Matrix; // динамический массив нижней матрицы
 
-       chord_is_active : boolean; // флажок зажатого "аккорда", это когда зажаты одновременно левая и правая кнопки мыши
-       chord_cells : TChord_Array; // зажатый аккорд, массив из ячеек входящих в аккорд. длинну получать функцией length()
+       mouse_keys_active : TMouse_Keys_Active; // храним какая клавиша мыши зажата юзером, пока он не отпустит её или их
 
        procedure configure_grid; // в этой процедуре мы производим все требуемые настройки грида
-
        function  in_cell_mine(py,px:integer):boolean; // возвращает истину если по указанных координатам есть мина
        procedure throw_mine(py,px:integer); // устанавливает мину по указанным координатам
        function  get_neighbors_count(py,px:integer): integer; // возвращает число мин, соседствующих с ячейкой py,px
        procedure open_cell( py, px : integer); // открывает ячейку с координатами py,px. Если нужно - то рекурсивно соседние
+       procedure move_mine_to_free_cell(py,px:integer); // перемещает мину в координатах cy,cx в первую попавшуюся пустую ячейку
+       procedure check_gamer_win_and_apply; // проверяет победил ли игрок, если да - то возвращает истину, иначе - ложь
+
        procedure generate_top_matrix; // генерирует новую верхнюю матрицу, размеры берутся из констант, ПЕРЕДЕЛАТЬ !!!!!!!!!!!!!!!
        procedure generate_bottom_matrix; // генерирует новую нижнюю матрицу, размеры берутся из констант, ПЕРЕДЕЛАТЬ !!!!!!!!!!!!!!!!
-       procedure move_mine_to_free_cell(py,px:integer); // перемещает мину в координатах cy,cx в первую попавшуюся пустую ячейку
+    private
+       chord_is_active : boolean; // флажок зажатого "аккорда", это когда зажаты одновременно левая и правая кнопки мыши
+       chord_cells : TChord_Array; // зажатый аккорд, массив из ячеек входящих в аккорд.
+       chord_center_coord : TCoord; // координаты центра аккорда
 
-       function chrord_get_cells_count:integer; // возвращает количество ячеек аккорда
-       function chord_get_flags_count:integer;  // возвращает количество флагов в аккорде
-
-
-
+       procedure chord_recreate(py,px:integer); // пересоздаёт аккорд вокруг указанной координаты, в то числе может создать и пустой.
+                                                // предыдущий аккорд будет удалён
+       procedure chord_delete; // удаляет текущий аккорд
+       function  chord_get_cells_count:integer; // возвращает количество ячеек аккорда
+       function  chord_get_flags_count:integer;  // возвращает количество флагов в аккорде
+       procedure chord_open; // открывает текущий аккорд по правилам
     protected
 
     public
       constructor Create( game_form: TForm; game_grid: TDrawGrid; game_state_label: TLabel;
                           name_of_asset_pack: string ); // конструктор
       destructor Destroy;override; // деструктор
-
       procedure drawgrid_OnDrawCell(Sender: TObject; aCol,
                 aRow: Integer; aRect: TRect; aState: TGridDrawState);// обработчик перерисовки ячеек игрового грида
       procedure drawgrid_OnMouseDown(Sender: TObject; Button: TMouseButton;// обработчик нажатия мышки на игровом гриде
@@ -98,11 +102,11 @@ type
       procedure drawgrid_OnMouseUp(Sender: TObject;
                 Button: TMouseButton; Shift: TShiftState; X, Y: Integer);// обработчик отпускания мышки на игровом гриде,
                                                                          // нужен для обработки аккордов
-
+      procedure drawgrid_OnMouseMove(Sender: TObject;
+                Shift: TShiftState; X, Y: Integer); // обработчик перемещения мышки по игровому гриду, нужно для
+                                                    // правильной обработки аккордов
       procedure start_game; // стартует игру с текущими настройками
       procedure change_game_state(new_game_state:TGame_State);// переключает состояние игры
-
-
       procedure process_user_win; // вызывается в случае победы юзера
       procedure process_user_lose;// вызывается в случае поражения юзера
   end;
@@ -143,11 +147,11 @@ begin
   self.dg_game_grid.OnDrawCell:=@self.drawgrid_OnDrawCell;
   self.dg_game_grid.OnMouseDown:=@self.drawgrid_OnMouseDown;
   self.dg_game_grid.OnMouseUp:=@self.drawgrid_OnMouseUp;
+  self.dg_game_grid.OnMouseMove:=@self.drawgrid_OnMouseMove;
 
   // перерисовка дро-грида после настройки всех его свойств
   self.dg_game_grid.Repaint;
 end;
-
 
 function T_Mine_Sweeper.in_cell_mine(py,px:integer):boolean;
 { возвращает истину если в ячейке есть мина
@@ -275,6 +279,8 @@ end;
   Клетку с миной эта процедура не обрабатывает откроет, это нужно делать в объемлющем коде!
 }
 procedure T_Mine_Sweeper.open_cell( py, px : integer);
+var
+  iy,ix : integer;
 begin
  if (py<0) or (py>=top_matrix_height) or  // если координата неправильная - выходим из процедуры
     (px<0) or (px>=top_matrix_width) or   // райзить здесь эксепшн не будем, так как такой подход позволит проще
@@ -285,9 +291,11 @@ begin
  if (top_matrix[py,px]=TC_OPENED) then  //если клетка уже открытая - выходим из процедуры
    exit;
 
- if (bottom_matrix[py,px] = BC_EMPTY) then
+ if (bottom_matrix[py,px] = BC_EMPTY) then // если по коорджинатам py,px внизу пустая ячейка, то откроем клетку и
+                                           // организуем рекурсию этой процедуры
    begin
-    top_matrix[py,px] := TC_OPENED;
+    self.first_game_turn:=False; // снимем флажок первого хода
+    top_matrix[py,px] := TC_OPENED; // откроем ячейку верхней матрицы
     // (-1, -1), (-1, 0), (-1,+1)
     // ( 0, -1), (py,px), ( 0,+1)
     // (+1, -1), (+1, 0), (+1,+1)
@@ -295,11 +303,40 @@ begin
     open_cell(py+0,px-1);                     open_cell(py+0,px+1);
     open_cell(py+1,px-1);open_cell(py+1,px+0);open_cell(py+1,px+1);
    end
- else if ( QWord(bottom_matrix[py,px])>=QWord(BC_NEAR_1) )
+ else if ( QWord(bottom_matrix[py,px])>=QWord(BC_NEAR_1) )  // иначе если внизу ячейка с циферками, то просто откроем ячейку
      and ( QWord(bottom_matrix[py,px])<=QWord(BC_NEAR_8) ) then
    begin
-    top_matrix[py,px] := TC_OPENED;
-   end;
+    self.first_game_turn:=False; // снимем флажок первого хода
+    top_matrix[py,px] := TC_OPENED; // откроем ячейку верхней матрицы
+   end
+ else if ( in_cell_mine(py,px) ) then // иначе если внизу ячейка с миной, тогда обрабатываем её подрыв
+   begin
+      { первый ход не должен подрывать мину ! обработаем этот случай ! }
+      if ( self.first_game_turn ) then
+      begin
+        self.move_mine_to_free_cell(py,px);  // переместим мину в первую свободную ячейку
+        self.first_game_turn:=False; // снимем флажок первого хода
+        open_cell(py,px); // откроем ячейку, там может получится рекурсивное открытие свободного поля
+        { выйдем из процедуры, иначе ошибочно выполнится код ниже и установит подорваную
+          мину в клетку cy,cx. Вот такие вот в программировании есть неожиданности.
+          Перед выходом перерисуем дро-грид }
+        self.dg_game_grid.Repaint;
+        exit;
+      end;
+
+      { делаем подрыв мины в ячейке }
+      top_matrix[py,px]:=TC_OPENED;  // откроем ячейку
+      bottom_matrix[py,px]:=BC_EXPLODED_MINE; // мину переключим на подорваную мину
+
+      { обработка ПРОИГРЫША в игре }
+      self.chord_delete; // эта процедура могла быть вызвана при открытии аккорда, поэтому удалим текущий аккорд
+                         // чтобы не было артефактов отрисовки в интефейсе
+      for iy:=0 to top_matrix_height-1 do // в циклах откроем всю верхнюю матрицу
+         for ix:=0 to top_matrix_width-1 do
+             top_matrix[iy,ix]:=TC_OPENED;
+      self.dg_game_grid.Repaint;  // перерисуем игровой дро-грид
+      self.change_game_state(GS_LOSE); // переключим состояние игры на ПРОИГРЫШ
+    end;
 end;
 
 procedure T_Mine_Sweeper.generate_top_matrix;
@@ -367,6 +404,89 @@ begin
 
 end;
 
+procedure T_Mine_Sweeper.chord_recreate(py, px: integer);
+{ пересоздаёт аккорд для ячейки py,px, может быть что будет создан пустой аккорд.
+ грид не перерисовывается }
+var
+   i: integer;
+   yy, xx: integer;
+begin
+   self.chord_delete; // удалим текущий аккорд
+
+  { проверим переданные координаты на попадание в диапазоны ВЕРХНЕЙ матрицы,
+    но эксепшн для выхода за пределы вызывать не будем - просто выйдем из процедуры,
+    и в результате получим пустой аккорд для некорректных координат }
+  if ( (py<0)or(py>=top_matrix_height) ) or
+     ( (px<0)or(px>=top_matrix_width)  ) then exit;
+
+
+  { для перебора всех соседей клетки  бежим по массиву смещений  }
+  for i:=1 to 8 do
+   begin
+     { имея индекс массива смещений вычислим координаты очередной из восьми соседних клеток для px,py и положим их в yy,xx }
+     yy := square_offsets[i].y + py;
+     if ( yy<0 ) or ( yy>=matrix_height ) then continue; // если координата соседней ячейки yy лежит за пределами матрицы - перейдём к следующей итерации цикла
+     xx := square_offsets[i].x + px;
+     if ( xx<0 ) or ( xx>=matrix_width ) then continue; // проверяем координату xx, аналогично как и yy
+
+     { здесь мы имеем валидные координаты yy,xx, решим, входят-ли они в аккорд }
+     if ( top_matrix[yy,xx]=TC_UNKNOWN ) or
+        ( top_matrix[yy,xx]=TC_FLAGGED ) then // если по вычисленным координатам yy,xx закрытая клетка, даже
+                                              // помеченая флагом, то выполним блок кода, добавляющий её в аккорд.
+       begin
+         SetLength(self.chord_cells,length(self.chord_cells)+1); // увеличим длинну массива аккорда на 1 единицу
+         { положим координаты очередной вычисленной ячейки в последнюю, добавленную ячейку массива аккорда }
+         self.chord_cells[length(self.chord_cells)-1].y:= yy;
+         self.chord_cells[length(self.chord_cells)-1].x:= xx;
+         self.chord_cells[length(self.chord_cells)-1].has_flag:=(top_matrix[yy,xx]=TC_FLAGGED);// запишем истину в ячейку аккорда
+                                                                                               // если в ней есть флаг
+       end;
+   end;
+
+  { установим координаты и логический флаг для непустого аккорда, для пустого оставим как есть - пустыми }
+  if (self.chord_get_cells_count>0) then
+    begin
+      self.chord_is_active:=True;
+      self.chord_center_coord.y:=py;
+      self.chord_center_coord.x:=px;
+    end;
+
+end;
+
+procedure T_Mine_Sweeper.chord_delete;
+{ удяляет текущий аккорд, грид при этом не перерисовывается }
+begin
+ SetLength(self.chord_cells,0);
+ self.chord_is_active:=False;
+ self.chord_center_coord.y:=0;
+ self.chord_center_coord.x:=0;
+end;
+
+procedure T_Mine_Sweeper.chord_open;
+var
+   i: integer;
+begin
+  if ( not self.chord_is_active ) or
+     ( self.chord_get_cells_count<=0 )  then  exit; // если аккорд не зажат - то выходим из процедуры
+  if ( self.chord_get_flags_count =   // по этому правилу открываются ячейки в сапйре при активации аккорда
+       self.get_neighbors_count(self.chord_center_coord.y,self.chord_center_coord.x) ) then
+         begin
+           for i:=0 to length(self.chord_cells)-1 do // теперь перебор всех ячеек аккорда
+            begin
+                if ( not self.chord_is_active ) then break; // ниже вызывается рекурсивная процедура open_cell, в которой
+                                                            // может быть проигрыш или выигрыш.
+                                                            // В ней обнуляется аккорд, поэтому на каждой итерации цикла
+                                                            // проверяем активность аккорда, если он неактивен - то
+                                                            // цикл следует прервать
+                if ( not self.chord_cells[i].has_flag ) then // для каждой ячейки без флага
+                  open_cell(self.chord_cells[i].y,self.chord_cells[i].x); // откроем эту ячейку
+            end;
+         end;
+  self.chord_delete; // удалим аккорд, он всё равно открыт
+  self.check_gamer_win_and_apply; // проверим игровое поле на выигрыш, я сознательно не проверяю на выигрыш в open_cell
+                                  // так как там есть рекурсия и каждый там раз проверять - лишняя нагрузка на процессор
+end;
+
 procedure T_Mine_Sweeper.move_mine_to_free_cell(py, px: integer);
 var
    iy, ix : integer;
@@ -417,7 +537,35 @@ begin
 
 end;
 
-function T_Mine_Sweeper.chrord_get_cells_count: integer;
+procedure T_Mine_Sweeper.check_gamer_win_and_apply;
+var
+   closed_count : integer;
+   iy, ix : integer;
+begin
+   { Обработка ВЫИГРЫША в игре.
+     Игра выиграна если на поле остались закрытыми(TC_UNKNOWN или TC_FLAGGED) все
+     ячейки с минами(BC_INSTALLED_MINE) и кроме этого нет других закрытых ячеек.
+     При этом будет количество закрытых ячеек будет равно количеству мин без
+     единого подрыва. Подрыв мины обрабатывается в в процедуре open_cell
+    }
+   { подсчитаем количество закрытых клеток на поле }
+   closed_count:=0;
+   for iy:=0 to matrix_height-1 do
+     for ix:=0 to matrix_width-1 do
+       if (top_matrix[iy,ix]=TC_UNKNOWN) or (top_matrix[iy,ix]=TC_FLAGGED) then
+         inc(closed_count);
+   { если верен вышеописаный признак победы в игре, то }
+   if ( closed_count=N_mines ) then
+    begin
+      for iy:=0 to top_matrix_height-1 do // в циклах откроем всю верхнюю матрицу
+        for ix:=0 to top_matrix_width-1 do
+           top_matrix[iy,ix]:=TC_OPENED;
+      self.f_game_form.Repaint;  // перерисуем игровой дро-грид
+      self.change_game_state(GS_WIN); // переключим состояние игры на ВЫИГРЫШ
+    end;
+end;
+
+function T_Mine_Sweeper.chord_get_cells_count: integer;
 begin
   Result:=Length(self.chord_cells);
 end;
@@ -433,6 +581,8 @@ begin
       inc(cnt);
   Result:=cnt;
 end;
+
+
 
 procedure T_Mine_Sweeper.change_game_state(new_game_state: TGame_State);
 { изменяет состояние игры на одно из допустимых, при этом меняет текст в лейбле игровых
@@ -479,8 +629,10 @@ begin
 
   self.first_game_turn:= true; // выставим факт первого хода в игре в истину
 
-  self.chord_is_active:=False; //по умолчанию аккорд неактивен
-  SetLength(self.chord_cells,0); // установим нулевую длинну для массива ячеек аккорда
+  self.chord_delete; //по умолчанию аккорд неактивен
+
+  self.mouse_keys_active:=MKA_NONE;
+
   //... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
 end;
 
@@ -490,6 +642,7 @@ begin
   self.dg_game_grid.OnDrawCell:=nil;
   self.dg_game_grid.OnMouseDown:=nil;
   self.dg_game_grid.OnMouseUp:=nil;
+  self.dg_game_grid.OnMouseMove:=nil;
   // обнулим лэйбл игрового состояния
   self.lb_game_state.Caption:='';
   // перерисуем игровые контролы
@@ -542,7 +695,7 @@ begin
   { если юзер зажал аккорд, и это ячейка аккорда, да ещё и без флага то мы
      должны отрисовать тайл аккорда }
   if (self.chord_is_active) then  // если аккорда активен
-     if (self.chrord_get_cells_count>0) then  // если длинна аккорда не равна нулю
+     if (self.chord_get_cells_count>0) then  // если длинна аккорда не равна нулю
         begin
           { для хранения списка ячеек аккорда я использовал не умные коллекции,
             а простой массив, поэтому для определения нахождения текущей координаты
@@ -579,11 +732,11 @@ var
   flags_count: integer;
   closed_count : integer;
 begin
-   // мышь обрабатываем только если режим игры GS_PLAY
+   { мышь обрабатываем только если режим игры GS_PLAY }
    if ( game_state<>GS_PLAY) then exit;
-   // в эту процедуру передаются абсолютные координаты мыши всего DrawGrid-а
-   // нам нужно получить координаты ячейки, по которой щёлкнул пользователь
-   // что мы и делаем ниже...
+   { в эту процедуру передаются абсолютные координаты мыши всего DrawGrid-а
+    нам нужно получить координаты ячейки, по которой щёлкнул пользователь
+    что мы и делаем ниже... }
    cy := Y div self.dg_game_grid.DefaultRowHeight;
    if (cy<0) then cy:=0;
    if (cy>=self.dg_game_grid.DefaultRowHeight-1) then cy:=self.dg_game_grid.DefaultRowHeight-1;
@@ -592,88 +745,35 @@ begin
    if (cx>=self.dg_game_grid.DefaultColWidth-1) then cx:=self.dg_game_grid.DefaultRowHeight-1;
 
 
-   { проверяем аккорд,то есть нажаты ли две клавиши одновременно.
+   { ОБЕ КЛАВИШИ. проверяем аккорд,то есть нажаты ли две клавиши одновременно.
      код проверки двух клавиш найден на просторах Интернета! }
    if ((button = mbLeft) and (ssRight in Shift)) or
       ((button = mbRight) and (ssLeft in Shift))  then
         begin
-
-           SetLength(self.chord_cells,0);
-
-           self.chord_is_active:=True;
-           for i:=1 to 8 do // для перебора всех соседей клетки  бежим по массиву смещений
-             begin
-               { имея индекс массива смещений вычислим координаты очередной из восьми соседних клеток для cx,cy и положим их в yy,xx }
-               yy := square_offsets[i].y + cy;
-               if ( yy<0 ) or ( yy>=matrix_height ) then continue; // если координата соседней ячейки yy лежит за пределами матрицы - перейдём к следующей итерации цикла
-               xx := square_offsets[i].x + cx;
-               if ( xx<0 ) or ( xx>=matrix_width ) then continue; // проверяем координату xx, аналогично как и yy
-
-               { здесь мы имеем валидные координаты yy,xx, решим, входят-ли они в аккорд }
-               if ( top_matrix[yy,xx]=TC_UNKNOWN ) or
-                  ( top_matrix[yy,xx]=TC_FLAGGED ) then // если по вычисленным координатам yy,xx закрытая клетка, даже
-                                                        // помеченая флагом, то выполним блок кода, добавляющий её в аккорд.
-                 begin
-                   SetLength(self.chord_cells,length(self.chord_cells)+1); // увеличим длинну массива аккорда на 1 единицу
-                   { положим координаты очередной вычисленной ячейки в последнюю, добавленную ячейку массива аккорда }
-                   self.chord_cells[length(self.chord_cells)-1].y:= yy;
-                   self.chord_cells[length(self.chord_cells)-1].x:= xx;
-                   self.chord_cells[length(self.chord_cells)-1].has_flag:=(top_matrix[yy,xx]=TC_FLAGGED);// запишем истину в ячейку аккорда
-                                                                                                         // если в ней есть флаг
-                 end;
-             end;
-           self.dg_game_grid.Repaint;
-           exit;
+           self.mouse_keys_active:=MKA_BOTH;
+           self.chord_recreate(cy,cx); // пересоздадим аккорд для текущих координат cy,cx
+           self.dg_game_grid.Repaint; // перерисуем грид чтобы юзер увидел аккорд
+           exit; //выйдем из процедуры, чтобы не выполнился случайно код ниже, это нам здесь ни к чему!
         end;
-   //!!!!!!!!!!!! else if
-//   else
-//     begin
-//        { организуем отжатие аккорда }
-//     self.chord_is_active:=False;
-  //      SetLength(self.chord_cells,0);
-  //    end;
 
-   // открываем ячейку, если внизу пусто, то рекурсивно открываем все соседние ячейки
-   // всё в точности как в оригинальном сапёре
+   { ЛЕВАЯ КЛАВИША. открываем ячейку, если внизу пусто, то рекурсивно открываем все соседние ячейки
+     всё в точности как в оригинальном сапёре }
    if ( Button=mbLeft ) then
-     if ( top_matrix[cy,cx]=TC_UNKNOWN ) then
-       begin
-          if ( in_cell_mine(cy,cx) ) then // В ЯЧЕЙКЕ МИНА - нужно обработать этот случай
-            begin
-              if ( self.first_game_turn ) then // первый ход не должен подрывать мину !
-                begin
-                  self.move_mine_to_free_cell(cy,cx);  // переместим мину в первую свободную ячейку
-                  open_cell(cy,cx); // откроем ячейку
-                  self.first_game_turn:=False; // снимем флажок первого хода
-                  { выйдем из процедуры, иначе ошибочно выполнится код ниже и установит подорваную
-                    мину в клетку cy,cx. Вот такие вот в программировании есть неожиданности.
-                    Перед выходом перерисуем дро-грид }
-                  self.dg_game_grid.Repaint;
-                  exit;
-                end;
+     begin
+       self.mouse_keys_active:=MKA_LEFT;
+       if ( top_matrix[cy,cx]=TC_UNKNOWN ) then
+         open_cell(cy,cx);
+     end;
 
-              top_matrix[cy,cx]:=TC_OPENED;  // откроем ячейку
-              bottom_matrix[cy,cx]:=BC_EXPLODED_MINE; // мину переключим на подорваную мину
-              { обработка ПРОИГРЫША в игре }
-              for iy:=0 to top_matrix_height-1 do // в циклах откроем всю верхнюю матрицу
-                 for ix:=0 to top_matrix_width-1 do
-                     top_matrix[iy,ix]:=TC_OPENED;
-              self.f_game_form.Repaint;  // перерисуем игровой дро-грид
-              self.change_game_state(GS_LOSE); // переключим состояние игры на ПРОИГРЫШ
-            end
-          else  // В ЯЧЕЙКЕ НЕТ МИНЫ - просто откроем ячейку, если надо - то рекурсивно ей соседей
-            begin
-              open_cell(cy,cx);
-            end;
-          self.first_game_turn:=False; // и здесь снимем флажок первого хода, вот такая развесистая клюква иногда бывает, сдобреная дебаггером
-       end;
-
-   // помечаем ячейку флагом или убираем флаг
+   { ПРАВАЯ КЛАВИША. помечаем ячейку флагом или убираем флаг }
    if ( Button=mbRight ) then
-     if ( top_matrix[cy,cx]=TC_UNKNOWN ) then
-       top_matrix[cy,cx]:=TC_FLAGGED
-     else if ( top_matrix[cy,cx]=TC_FLAGGED ) then
-       top_matrix[cy,cx]:=TC_UNKNOWN;
+     begin
+       self.mouse_keys_active:=MKA_RIGHT;
+       if ( top_matrix[cy,cx]=TC_UNKNOWN ) then
+         top_matrix[cy,cx]:=TC_FLAGGED
+       else if ( top_matrix[cy,cx]=TC_FLAGGED ) then
+         top_matrix[cy,cx]:=TC_UNKNOWN;
+     end;
 
 
    { подсчитаем количество флагов, выставленных игроком }
@@ -684,38 +784,65 @@ begin
        inc(flags_count);
    // !!!!!!!!!! вывод количества флагов в интерфейсе !!!!!!!!!
 
-   { Обработка ВЫИГРЫША в игре.
-     Игра выиграна если на поле остались закрытыми(TC_UNKNOWN или TC_FLAGGED) все
-     ячейки с минами(BC_INSTALLED_MINE) и кроме этого нет других закрытых ячеек.
-     То есть количество закрытых ячеек будет равно количеству мин.
-    }
-   // подсчитаем количество закрытых клеток на поле
-   closed_count:=0;
-   for iy:=0 to matrix_height-1 do
-     for ix:=0 to matrix_width-1 do
-       if (top_matrix[iy,ix]=TC_UNKNOWN) or (top_matrix[iy,ix]=TC_FLAGGED) then
-         inc(closed_count);
-   // если верен вышеописаный признак победы в игре, то
-   if ( closed_count=N_mines ) then
-    begin
-      for iy:=0 to top_matrix_height-1 do // в циклах откроем всю верхнюю матрицу
-        for ix:=0 to top_matrix_width-1 do
-           top_matrix[iy,ix]:=TC_OPENED;
-      self.f_game_form.Repaint;  // перерисуем игровой дро-грид
-      self.change_game_state(GS_WIN); // переключим состояние игры на ВЫИГРЫШ
-    end;
+   self.check_gamer_win_and_apply; // проверим игру на выигрыш и если - да применим результат выигрыша
 
-   // даём команду на перерисовку всего грида
+   { даём команду на перерисовку всего грида }
    self.dg_game_grid.Repaint;
 end;
 
 procedure T_Mine_Sweeper.drawgrid_OnMouseUp(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  cy,cx: integer;
 begin
-     { организуем отжатие аккорда }
-     self.chord_is_active:=False;
-     SetLength(self.chord_cells,0);
-     self.dg_game_grid.Repaint;
+  { мышь обрабатываем только если режим игры GS_PLAY }
+  if ( game_state<>GS_PLAY) then exit;
+  { в эту процедуру передаются абсолютные координаты мыши всего DrawGrid-а
+    нам нужно получить координаты ячейки, по которой щёлкнул пользователь
+    что мы и делаем ниже... }
+  cy := Y div self.dg_game_grid.DefaultRowHeight;
+  if (cy<0) then cy:=0;
+  if (cy>=self.dg_game_grid.DefaultRowHeight-1) then cy:=self.dg_game_grid.DefaultRowHeight-1;
+  cx := X div self.dg_game_grid.DefaultColWidth;
+  if (cx<0) then cx:=0;
+  if (cx>=self.dg_game_grid.DefaultColWidth-1) then cx:=self.dg_game_grid.DefaultRowHeight-1;
+
+
+  { организуем открытие аккорда }
+  self.chord_open; // откроем аккорд
+  self.chord_delete; // на всякий случай удалим текущий аккорд
+
+  { сбросим состояние всех клавиш в ноль, даже если отжата какая-то одна,
+    возможны косяки в интерфейсе, но это оставим напотом !!!!!!!!!!!!!!!!!!!!!!!!!!! }
+  self.mouse_keys_active:=MKA_NONE;
+
+  self.dg_game_grid.Repaint;
+end;
+
+procedure T_Mine_Sweeper.drawgrid_OnMouseMove(Sender: TObject;
+  Shift: TShiftState; X, Y: Integer);
+var
+  cy,cx: integer;
+begin
+  { мышь обрабатываем только если режим игры GS_PLAY }
+  if ( game_state<>GS_PLAY) then exit;
+  { в эту процедуру передаются абсолютные координаты мыши всего DrawGrid-а
+    нам нужно получить координаты ячейки, по которой щёлкнул пользователь
+    что мы и делаем ниже... }
+  cy := Y div self.dg_game_grid.DefaultRowHeight;
+  cx := X div self.dg_game_grid.DefaultColWidth;
+  { если координаты не попадают в дипазоны матрицы - выходим из процедуры }
+  if (cy<0) then exit;
+  if (cy>=self.dg_game_grid.DefaultRowHeight-1) then exit;
+  if (cx<0) then exit;
+  if (cx>=self.dg_game_grid.DefaultColWidth-1) then exit;
+
+  { обрабатываем перемещение мыши с зажатым аккордом по полю дро-грида }
+  if ( self.mouse_keys_active=MKA_BOTH ) then
+      begin
+        self.chord_recreate(cy,cx);
+        self.dg_game_grid.Repaint;
+      end;
 end;
 
 procedure T_Mine_Sweeper.start_game;
