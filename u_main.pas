@@ -45,6 +45,7 @@ begin
   self.mine_sweeper := nil;
 end;
 
+
 procedure Tf_main.b_start_refactoredClick(Sender: TObject);
 begin
   if self.mine_sweeper<>nil then // если в памяти уже есть объект T_Mine_Sweeper, то его нужно выгрузить
@@ -54,7 +55,7 @@ begin
     end;
   self.mine_sweeper := T_Mine_Sweeper.Create( self, self.dg_refactored_game,
                        self.lb_game_state, 'asset_pack_blue' ); // создадим объект T_Mine_Sweeper
-  self.mine_sweeper.start_game;
+  self.mine_sweeper.start_game; // стартуем игру
 end;
 
 

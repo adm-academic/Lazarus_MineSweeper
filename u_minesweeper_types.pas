@@ -39,12 +39,25 @@ type
   TTop_Cell    = ( TC_UNKNOWN  = 0, // пока неизвестная ячейка, закрытая
                    TC_FLAGGED  = 1, // ячейка помеченая флагом
                    TC_OPENED   = 10 // ячейка открытая. То есть такая ячейка не прорисовывается, а вместо
-                                    // неё прорисовывается соответсвующая ячейка из нижней матрицы
+                                     // неё прорисовывается соответсвующая ячейка из нижней матрицы
                  );
   // собственно нижняя матрица. динамический двуметный массив
   TBottom_Matrix = array of array of TBottom_Cell;
   // также и верхняя матрица. динамический двумерный массив
   TTop_Matrix    = array of array of TTop_Cell;
+
+  TCoord = record // тип для хранения двумерных координат
+    y : integer;
+    x : integer;
+  end;
+
+  TChordCoord = record // тип для хранения ячеек аккорда
+    y : integer;
+    x : integer;
+    has_flag : boolean; // истина есть это ячейка аккорда с флагом
+  end;
+
+  TChord_Array = array of TChordCoord; // тип для хранения и передачи аккордов внутри приложения
 
   // указатель на объект PNG-картинки
   PPortableNetworkGraphic = ^TPortableNetworkGraphic;

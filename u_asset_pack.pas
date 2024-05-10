@@ -31,6 +31,7 @@ type
       tile_default : TPortableNetworkGraphic;
       tile_tc_unknown : TPortableNetworkGraphic;
       tile_tc_flagged : TPortableNetworkGraphic;
+      tile_tc_chord : TPortableNetworkGraphic;
       tile_bc_empty :  TPortableNetworkGraphic;
       tile_bc_near_1 : TPortableNetworkGraphic;
       tile_bc_near_2 : TPortableNetworkGraphic;
@@ -42,6 +43,7 @@ type
       tile_bc_near_8 : TPortableNetworkGraphic;
       tile_bc_installed_mine : TPortableNetworkGraphic;
       tile_bc_exploded_mine : TPortableNetworkGraphic;
+
 
     protected
 
@@ -80,6 +82,7 @@ begin
   tile_default.Free; tile_default:=nil;
   tile_tc_unknown.Free;   tile_tc_unknown:=nil;
   tile_tc_flagged.Free;   tile_tc_flagged:=nil;
+  tile_tc_chord.Free;    tile_tc_chord:=nil;
   tile_bc_empty.Free;    tile_bc_empty:=nil;
   tile_bc_near_1.Free;   tile_bc_near_1:=nil;
   tile_bc_near_2.Free;   tile_bc_near_2:=nil;
@@ -135,13 +138,14 @@ procedure T_Asset_Pack.load_all_asset_files; // загружает тайлы и
 { я намерено не стал использовать ассоциированные массивы (Map,Dict) в этом классе, поскольку я намереваюсь
  бэкпортировать всю эту игру в старые версии FPC,Lazarus и Delphi. }
 const
-   total_tile_files_count = 14;   // ожидаемое количество тайлов в любом ассет паке
+   total_tile_files_count = 15;   // ожидаемое количество тайлов в любом ассет паке
    tile_files : array [0..total_tile_files_count-1] of string = // перечень имён тайлов в любом ассет паке
                                                                 // используется для проверки корректности
                                                                 // набора тайлов.
     ( 'default.png',
       'tc_unknown.png',
       'tc_flagged.png',
+      'tc_chord.png',
       'bc_empty.png',
       'bc_near_1.png',
       'bc_near_2.png',
@@ -176,6 +180,9 @@ begin
 
   self.tile_tc_flagged := TPortableNetworkGraphic.Create;
   self.tile_tc_flagged.LoadFromFile( self.asset_pack_full_patch + 'tc_flagged.png' );
+
+  self.tile_tc_chord := TPortableNetworkGraphic.Create;
+  self.tile_tc_chord.LoadFromFile( self.asset_pack_full_patch +  'tc_chord.png' );
 
   self.tile_bc_empty :=  TPortableNetworkGraphic.Create;
   self.tile_bc_empty.LoadFromFile( self.asset_pack_full_patch + 'bc_empty.png' );
