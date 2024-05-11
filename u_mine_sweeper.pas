@@ -53,7 +53,7 @@ type
     private
        f_game_form  : TForm;    // объект формы, на которой расположено игровое поле, передаётся из объемлющего кода в конструктор
        dg_game_grid : TDrawGrid;// объект дро-грида, который работает как игровое поле, передаётся из объемлющего кода в конструктор
-       lb_game_state : TLabel;  // объект лэйбла, в котором отображается текущее состояние игры
+       lb_game_state : TLabel;  // объект лэйбла, в котором отображается текущее состояние игры, передаётся из объемлющего кода в конструктор
        actual_tile_size : dword;// актуальный размер тайлов, отображаемых на игровом гриде
 
        asset_pack_name : string;         // имя загруженного ассет пака
@@ -74,7 +74,7 @@ type
        function  get_neighbors_count(py,px:integer): integer; // возвращает число мин, соседствующих с ячейкой py,px
        procedure open_cell( py, px : integer); // открывает ячейку с координатами py,px. Если нужно - то рекурсивно соседние
        procedure move_mine_to_free_cell(py,px:integer); // перемещает мину в координатах cy,cx в первую попавшуюся пустую ячейку
-       procedure check_gamer_win_and_apply; // проверяет победил ли игрок, если да - то возвращает истину, иначе - ложь
+       procedure check_gamer_win_and_apply; // проверяет победил ли игрок
 
        procedure generate_top_matrix; // генерирует новую верхнюю матрицу, размеры берутся из констант, ПЕРЕДЕЛАТЬ !!!!!!!!!!!!!!!
        procedure generate_bottom_matrix; // генерирует новую нижнюю матрицу, размеры берутся из констант, ПЕРЕДЕЛАТЬ !!!!!!!!!!!!!!!!
@@ -188,9 +188,6 @@ end;
 
 function T_Mine_Sweeper.get_neighbors_count(py,px:integer): integer;
 { генерирует исключение при выходе координат за пределы размерности матрицы. }
-{
-    !!!!!!!!!!!!! пееработать на вариант с массивом смещений и циклом !!!!!!!!!!!!!!!!!!!!
-}
 var
   dy, dx,
   cy, cx : integer;
@@ -226,10 +223,11 @@ begin
    Result:=neighbors_counter;
 end;
 
-{ рекурсивная функция открывает текущую и все соседние клетки, в которых нет мин.
-  Клетку с миной эта процедура не обрабатывает откроет, это нужно делать в объемлющем коде!
-}
 procedure T_Mine_Sweeper.open_cell( py, px : integer);
+{ рекурсивная функция открывает текущую и все соседние ячейки, в которых нет мин.
+  при попадании на мину - обрабатывается подрыв и проигрыш игрока,
+  выигрыш здесь не обрабатывается - это должен сделать другой код, это нужно чтобы
+  не делать лишних полных переборов матрицы при рекурсивном открытии ячеек }
 var
   iy,ix : integer;
   cy,cx: integer;
@@ -433,13 +431,13 @@ var
 begin
   if ( not self.chord_is_active ) or
      ( self.chord_get_cells_count<=0 )  then  exit; // если аккорд не зажат - то выходим из процедуры
-  if ( self.chord_get_flags_count =   // по этому правилу открываются ячейки в сапйре при активации аккорда
+  if ( self.chord_get_flags_count =   // по этому правилу открываются ячейки в сапёре при активации аккорда
        self.get_neighbors_count(self.chord_center_coord.y,self.chord_center_coord.x) ) then
          begin
            for i:=0 to length(self.chord_cells)-1 do // теперь перебор всех ячеек аккорда
             begin
                 if ( not self.chord_is_active ) then break; // ниже вызывается рекурсивная процедура open_cell, в которой
-                                                            // может быть проигрыш или выигрыш.
+                                                            // может быть проигрыш.
                                                             // В ней обнуляется аккорд, поэтому на каждой итерации цикла
                                                             // проверяем активность аккорда, если он неактивен - то
                                                             // цикл следует прервать
@@ -466,6 +464,7 @@ begin
   for iy:=0 to matrix_height-1 do
     begin
     for ix:=0 to matrix_width-1 do
+      begin
       if (not in_cell_mine(iy,ix)) then
         begin
           nmy:=iy; nmx:=ix; // найденные в цикле координаты для переноса мины запомним в переменных
@@ -473,8 +472,9 @@ begin
           new_position_for_mine_found:=True;// флаг для прерывания цикла for по iy, так как Break прервёт только цикл по ix
           break; // бряк для ix
         end;
-        if ( new_position_for_mine_found ) then
-          break; // бряк для iy
+      end;
+      if ( new_position_for_mine_found ) then
+        break; // бряк для iy
     end;
 
   { выловим мину по координатам py,px и установим мину в координаты nmy,nmx }
