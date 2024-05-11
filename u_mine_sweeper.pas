@@ -68,11 +68,6 @@ type
 
        mouse_keys_active : TMouse_Keys_Active; // храним какая клавиша мыши зажата юзером, пока он не отпустит её или их
 
-       { хакерская примочка для исключения повторной обработки отпускания мыши над клеткой после того как
-         над клеткой уже отпущены две клавиши одновременно }
-       two_buttons_mouse_released : boolean; // выставлен в истину если были отпущены две клавиши мыши
-       // !!!!!!!!!!!!!
-
        procedure configure_grid; // в этой процедуре мы производим все требуемые настройки грида
        function  in_cell_mine(py,px:integer):boolean; // возвращает истину если по указанных координатам есть мина
        procedure throw_mine(py,px:integer); // устанавливает мину по указанным координатам
@@ -601,8 +596,6 @@ begin
 
   self.chord_delete; //по умолчанию аккорд неактивен
 
-  self.two_buttons_mouse_released:=False; // этот флаш по умолчанию выставлен в ложь
-
   self.mouse_keys_active:=MKA_NONE; // по умолчанию эта переменная выставлена в ноль ( MKA_NONE )
 
   //... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
@@ -867,6 +860,7 @@ begin
    self.generate_top_matrix; // проинициализируем верхнюю матрицу
    self.first_game_turn:= True; // установим флажок первого хода в истину
    self.change_game_state(GS_PLAY); // переключает состояние объекта на 'Игра'
+   self.dg_game_grid.Repaint;
 end;
 
 procedure T_Mine_Sweeper.process_user_win;
