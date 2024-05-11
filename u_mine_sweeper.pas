@@ -68,6 +68,11 @@ type
 
        mouse_keys_active : TMouse_Keys_Active; // храним какая клавиша мыши зажата юзером, пока он не отпустит её или их
 
+       { хакерская примочка для исключения повторной обработки отпускания мыши над клеткой после того как
+         над клеткой уже отпущены две клавиши одновременно }
+       two_buttons_mouse_released : boolean; // выставлен в истину если были отпущены две клавиши мыши
+       // !!!!!!!!!!!!!
+
        procedure configure_grid; // в этой процедуре мы производим все требуемые настройки грида
        function  in_cell_mine(py,px:integer):boolean; // возвращает истину если по указанных координатам есть мина
        procedure throw_mine(py,px:integer); // устанавливает мину по указанным координатам
@@ -100,8 +105,7 @@ type
       procedure drawgrid_OnMouseDown(Sender: TObject; Button: TMouseButton;// обработчик нажатия мышки на игровом гриде
                 Shift: TShiftState; X, Y: Integer);
       procedure drawgrid_OnMouseUp(Sender: TObject;
-                Button: TMouseButton; Shift: TShiftState; X, Y: Integer);// обработчик отпускания мышки на игровом гриде,
-                                                                         // нужен для обработки аккордов
+                Button: TMouseButton; Shift: TShiftState; X, Y: Integer);// обработчик отпускания мышки на игровом гриде
       procedure drawgrid_OnMouseMove(Sender: TObject;
                 Shift: TShiftState; X, Y: Integer); // обработчик перемещения мышки по игровому гриду, нужно для
                                                     // правильной обработки аккордов
@@ -196,6 +200,7 @@ var
   dy, dx,
   cy, cx : integer;
   neighbors_counter : integer;
+  i: integer;
 begin
    { проверим переданные координаты на попадание в диапазоны НИЖНЕЙ матрицы }
    if ( (py<0)or(py>=bottom_matrix_height) ) or
@@ -206,70 +211,21 @@ begin
                                       );
    // перед началом подсчёта установим счётчик соседних мин в ноль
    neighbors_counter:=0;
-   // у ячейки есть 8 соседей, если она находится не на границе матрицы.
-   // Проверяем на наличие мин всех соседних ячеек, с учётом границы.
-   // Очевидно что соседние клетки могут быть определены через таблицу смещений координат.
-   // (-1, -1), (-1, 0), (-1,+1)
-   // ( 0, -1), ( py, px), ( 0,+1)
-   // (+1, -1), (+1, 0), (+1,+1)
-   // Мы выполним вычисления прямым заданием в коде, не прибегая к массиву смещений.
-   // Это нарушит принцип DRY и сделает код повторяющимся,
-   // но зато код будет более наглядным для понимания.
-   dy:=-1; dx:=-1;
-   cy:=py+dy; cx:=px+dx;
-   if ( (cy>=0) and (cy<bottom_matrix_height) ) and
-      ( (cx>=0) and (cx<bottom_matrix_width) ) then
-        if ( in_cell_mine(cy,cx) )  then
-           inc( neighbors_counter );
 
-   dy:= 0; dx:=-1;
-   cy:=py+dy; cx:=px+dx;
-   if ( (cy>=0) and (cy<bottom_matrix_height) ) and
+   { у ячейки 8 соседей, проверим их с помощью массива square_offsets и цикла for
+     (-1, -1), (-1, 0), (-1,+1)
+     ( 0, -1), (py,px), ( 0,+1)
+     (+1, -1), (+1, 0), (+1,+1) }
+   for i:=1 to 8 do
+    begin
+      { вычислим координату очередного соседа через очередное смещение и массив смещений square_offsets }
+      cy:=py+square_offsets[i].y;
+      cx:=px+square_offsets[i].x;
+      if ( (cy>=0) and (cy<bottom_matrix_height) ) and  // если получившиеся координаты соседа находятся в диапазоне матриц
       ( (cx>=0) and (cx<bottom_matrix_width) ) then
-        if ( in_cell_mine(cy,cx) )  then
-           inc( neighbors_counter );
-
-   dy:=+1; dx:=-1;
-   cy:=py+dy; cx:=px+dx;
-   if ( (cy>=0) and (cy<bottom_matrix_height) ) and
-      ( (cx>=0) and (cx<bottom_matrix_width) ) then
-        if ( in_cell_mine(cy,cx) )  then
-           inc( neighbors_counter );
-
-   dy:=+1; dx:= 0;
-   cy:=py+dy; cx:=px+dx;
-   if ( (cy>=0) and (cy<bottom_matrix_height) ) and
-      ( (cx>=0) and (cx<bottom_matrix_width) ) then
-        if ( in_cell_mine(cy,cx) )  then
-           inc( neighbors_counter );
-
-   dy:=+1; dx:=+1;
-   cy:=py+dy; cx:=px+dx;
-   if ( (cy>=0) and (cy<bottom_matrix_height) ) and
-      ( (cx>=0) and (cx<bottom_matrix_width) ) then
-        if ( in_cell_mine(cy,cx) )  then
-           inc( neighbors_counter );
-
-   dy:= 0; dx:=+1;
-   cy:=py+dy; cx:=px+dx;
-   if ( (cy>=0) and (cy<bottom_matrix_height) ) and
-      ( (cx>=0) and (cx<bottom_matrix_width) ) then
-        if ( in_cell_mine(cy,cx) )  then
-           inc( neighbors_counter );
-
-   dy:=-1; dx:=+1;
-   cy:=py+dy; cx:=px+dx;
-   if ( (cy>=0) and (cy<bottom_matrix_height) ) and
-      ( (cx>=0) and (cx<bottom_matrix_width) ) then
-        if ( in_cell_mine(cy,cx) )  then
-           inc( neighbors_counter );
-
-   dy:=-1; dx:= 0;
-   cy:=py+dy; cx:=px+dx;
-   if ( (cy>=0) and (cy<bottom_matrix_height) ) and
-      ( (cx>=0) and (cx<bottom_matrix_width) ) then
-        if ( in_cell_mine(cy,cx) )  then
-           inc( neighbors_counter );
+        if ( in_cell_mine(cy,cx) )  then // если сосед это мина
+           inc( neighbors_counter ); // тогда прирастим счётчик мин на единицу
+    end;
 
    // положим в возвращаемую ячейку памяти подсчитанное нами число соседей для ячейки
    Result:=neighbors_counter;
@@ -281,6 +237,8 @@ end;
 procedure T_Mine_Sweeper.open_cell( py, px : integer);
 var
   iy,ix : integer;
+  cy,cx: integer;
+  i: integer;
 begin
  if (py<0) or (py>=top_matrix_height) or  // если координата неправильная - выходим из процедуры
     (px<0) or (px>=top_matrix_width) or   // райзить здесь эксепшн не будем, так как такой подход позволит проще
@@ -291,17 +249,26 @@ begin
  if (top_matrix[py,px]=TC_OPENED) then  //если клетка уже открытая - выходим из процедуры
    exit;
 
+ if (top_matrix[py,px]=TC_FLAGGED) then // если клетка по координатам помечена флагом - выходим из процедуры
+   exit;
+
  if (bottom_matrix[py,px] = BC_EMPTY) then // если по коорджинатам py,px внизу пустая ячейка, то откроем клетку и
                                            // организуем рекурсию этой процедуры
    begin
     self.first_game_turn:=False; // снимем флажок первого хода
     top_matrix[py,px] := TC_OPENED; // откроем ячейку верхней матрицы
-    // (-1, -1), (-1, 0), (-1,+1)
-    // ( 0, -1), (py,px), ( 0,+1)
-    // (+1, -1), (+1, 0), (+1,+1)
-    open_cell(py-1,px-1);open_cell(py-1,px+0);open_cell(py-1,px+1);
-    open_cell(py+0,px-1);                     open_cell(py+0,px+1);
-    open_cell(py+1,px-1);open_cell(py+1,px+0);open_cell(py+1,px+1);
+    { у ячейки 8 соседей, проверим их с помощью массива square_offsets и цикла for
+     (-1, -1), (-1, 0), (-1,+1)
+     ( 0, -1), (py,px), ( 0,+1)
+     (+1, -1), (+1, 0), (+1,+1) }
+    for i:=1 to 8 do
+     begin
+        { вычислим координаты соседей, проверку на диапазоны здесь делать не будем
+          поскольку она выполняется в начале процедуры open_cell }
+        cy:=py+square_offsets[i].y;
+        cx:=px+square_offsets[i].x;
+        open_cell(cy,cx);
+     end;
    end
  else if ( QWord(bottom_matrix[py,px])>=QWord(BC_NEAR_1) )  // иначе если внизу ячейка с циферками, то просто откроем ячейку
      and ( QWord(bottom_matrix[py,px])<=QWord(BC_NEAR_8) ) then
@@ -420,7 +387,10 @@ begin
      ( (px<0)or(px>=top_matrix_width)  ) then exit;
 
 
-  { для перебора всех соседей клетки  бежим по массиву смещений  }
+  { у ячейки 8 соседей, проверим их с помощью массива square_offsets и цикла for
+     (-1, -1), (-1, 0), (-1,+1)
+     ( 0, -1), (py,px), ( 0,+1)
+     (+1, -1), (+1, 0), (+1,+1) }
   for i:=1 to 8 do
    begin
      { имея индекс массива смещений вычислим координаты очередной из восьми соседних клеток для px,py и положим их в yy,xx }
@@ -631,7 +601,9 @@ begin
 
   self.chord_delete; //по умолчанию аккорд неактивен
 
-  self.mouse_keys_active:=MKA_NONE;
+  self.two_buttons_mouse_released:=False; // этот флаш по умолчанию выставлен в ложь
+
+  self.mouse_keys_active:=MKA_NONE; // по умолчанию эта переменная выставлена в ноль ( MKA_NONE )
 
   //... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
 end;
@@ -722,8 +694,7 @@ end;
 
 procedure T_Mine_Sweeper.drawgrid_OnMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
-{ это кастомный обработчик нажатий кнопок мыши в игровом DrawGrid,
-  всё взаимодействие мышью с игровым DrawGrid-е находится здесь }
+{ это кастомный обработчик нажатий кнопок мыши в игровом DrawGrid }
 var
   cy, cx: integer;
   iy, ix : integer;
@@ -745,46 +716,29 @@ begin
    if (cx>=self.dg_game_grid.DefaultColWidth-1) then cx:=self.dg_game_grid.DefaultRowHeight-1;
 
 
-   { ОБЕ КЛАВИШИ. проверяем аккорд,то есть нажаты ли две клавиши одновременно.
-     код проверки двух клавиш найден на просторах Интернета! }
+   { ОБЕ КЛАВИШИ. пересоздадим аккорд и перересуем дро-грид }
    if ((button = mbLeft) and (ssRight in Shift)) or
       ((button = mbRight) and (ssLeft in Shift))  then
         begin
-           self.mouse_keys_active:=MKA_BOTH;
-           self.chord_recreate(cy,cx); // пересоздадим аккорд для текущих координат cy,cx
-           self.dg_game_grid.Repaint; // перерисуем грид чтобы юзер увидел аккорд
-           exit; //выйдем из процедуры, чтобы не выполнился случайно код ниже, это нам здесь ни к чему!
+           self.mouse_keys_active:=MKA_BOTH; // отметим что зажаты обе клавиши мыши, это нужно для отрисовки аккордов
+           self.chord_recreate(cy,cx); // персоздадим аккорд
+           self.dg_game_grid.Repaint; // перересуем дро-грид
+           exit; // выйдем из процедуры
         end;
 
-   { ЛЕВАЯ КЛАВИША. открываем ячейку, если внизу пусто, то рекурсивно открываем все соседние ячейки
-     всё в точности как в оригинальном сапёре }
+   { ЛЕВАЯ КЛАВИША.  }
    if ( Button=mbLeft ) then
      begin
-       self.mouse_keys_active:=MKA_LEFT;
-       if ( top_matrix[cy,cx]=TC_UNKNOWN ) then
-         open_cell(cy,cx);
+       self.mouse_keys_active:=MKA_LEFT; // отметим что зажата левая клавиша мыши
+       exit; // выйдем из процедуры
      end;
 
-   { ПРАВАЯ КЛАВИША. помечаем ячейку флагом или убираем флаг }
+   { ПРАВАЯ КЛАВИША.   }
    if ( Button=mbRight ) then
      begin
-       self.mouse_keys_active:=MKA_RIGHT;
-       if ( top_matrix[cy,cx]=TC_UNKNOWN ) then
-         top_matrix[cy,cx]:=TC_FLAGGED
-       else if ( top_matrix[cy,cx]=TC_FLAGGED ) then
-         top_matrix[cy,cx]:=TC_UNKNOWN;
+       self.mouse_keys_active:=MKA_RIGHT; // отметим что зажата правая клавиша
+       exit; // выйдем из процедуры
      end;
-
-
-   { подсчитаем количество флагов, выставленных игроком }
-   flags_count:=0;
-   for iy:=0 to matrix_height-1 do
-     for ix:=0 to matrix_width-1 do
-      if top_matrix[iy,ix]=TC_FLAGGED then
-       inc(flags_count);
-   // !!!!!!!!!! вывод количества флагов в интерфейсе !!!!!!!!!
-
-   self.check_gamer_win_and_apply; // проверим игру на выигрыш и если - да применим результат выигрыша
 
    { даём команду на перерисовку всего грида }
    self.dg_game_grid.Repaint;
@@ -792,8 +746,14 @@ end;
 
 procedure T_Mine_Sweeper.drawgrid_OnMouseUp(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+{ это кастомный обработчик отпусканий кнопок мыши в игровом DrawGrid }
 var
-  cy,cx: integer;
+  cy, cx: integer;
+  iy, ix : integer;
+  i: integer;
+  yy, xx : integer;
+  flags_count: integer;
+  closed_count : integer;
 begin
   { мышь обрабатываем только если режим игры GS_PLAY }
   if ( game_state<>GS_PLAY) then exit;
@@ -807,20 +767,72 @@ begin
   if (cx<0) then cx:=0;
   if (cx>=self.dg_game_grid.DefaultColWidth-1) then cx:=self.dg_game_grid.DefaultRowHeight-1;
 
+  { ОБЕ КЛАВИШИ. проверяем аккорд,то есть отпущены ли две клавиши одновременно.
+     код проверки двух клавиш найден на просторах Интернета! }
+   if ((button = mbLeft) and (ssRight in Shift)) or
+      ((button = mbRight) and (ssLeft in Shift))  then
+        begin
+          if (self.mouse_keys_active=MKA_BOTH) then
+            begin
+               { организуем открытие аккорда }
+               if (self.top_matrix[cy,cx]=TC_OPENED) then // аккорд отрываем только если мышь нахоится над открытой ячейкой
+                 begin
+                 if (self.chord_is_active) then
+                   begin
+                     self.chord_open; // откроем аккорд
+                     self.chord_delete; // на всякий случай удалим текущий аккорд
+                   end;
+                 end
+               else //  иначе удалим текущий аккорд, визуально это соответсвует его отжатию
+                 begin
+                    self.chord_delete; // на всякий случай удалим текущий аккорд
+                 end;
+            end;
+        end
+   { иначе ЛЕВАЯ КЛАВИША. открываем ячейку, если внизу пусто, то рекурсивно открываем все соседние ячейки
+     всё в точности как в оригинальном сапёре }
+   else if ( Button=mbLeft ) then
+     begin
+       if (self.mouse_keys_active=MKA_LEFT) then
+         begin
+           if ( top_matrix[cy,cx]=TC_UNKNOWN ) then
+             open_cell(cy,cx);
+         end;
+     end
+   { иначе ПРАВАЯ КЛАВИША. помечаем ячейку флагом или убираем флаг }
+   else if ( Button=mbRight ) then
+     begin
+       if (self.mouse_keys_active=MKA_RIGHT) then
+         begin
+           if ( top_matrix[cy,cx]=TC_UNKNOWN ) then
+             top_matrix[cy,cx]:=TC_FLAGGED
+           else if ( top_matrix[cy,cx]=TC_FLAGGED ) then
+             top_matrix[cy,cx]:=TC_UNKNOWN;
+         end;
+     end;
 
-  { организуем открытие аккорда }
-  self.chord_open; // откроем аккорд
-  self.chord_delete; // на всякий случай удалим текущий аккорд
 
-  { сбросим состояние всех клавиш в ноль, даже если отжата какая-то одна,
+  { подсчитаем количество флагов, выставленных игроком }
+   flags_count:=0;
+   for iy:=0 to matrix_height-1 do
+     for ix:=0 to matrix_width-1 do
+      if top_matrix[iy,ix]=TC_FLAGGED then
+       inc(flags_count);
+   // !!!!!!!!!! вывод количества флагов в интерфейсе !!!!!!!!!
+
+   { сбросим состояние всех клавиш в ноль, даже если отжата какая-то одна,
     возможны косяки в интерфейсе, но это оставим напотом !!!!!!!!!!!!!!!!!!!!!!!!!!! }
-  self.mouse_keys_active:=MKA_NONE;
+   self.mouse_keys_active:=MKA_NONE;
 
+   self.check_gamer_win_and_apply; // проверим игру на выигрыш и если - да применим результат выигрыша
+
+  { даём команду на перерисовку всего грида }
   self.dg_game_grid.Repaint;
 end;
 
 procedure T_Mine_Sweeper.drawgrid_OnMouseMove(Sender: TObject;
   Shift: TShiftState; X, Y: Integer);
+{ это кастомный обработчик перемещений мыши в игровом DrawGrid }
 var
   cy,cx: integer;
 begin
