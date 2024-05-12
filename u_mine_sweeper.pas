@@ -506,6 +506,8 @@ var
    closed_count : integer;
    iy, ix : integer;
 begin
+   if ( game_state<>GS_PLAY ) then // процедура имеет смысл только если режим работы объекта - "ИГРА"
+     exit;
    { Обработка ВЫИГРЫША в игре.
      Игра выиграна если на поле остались закрытыми(TC_UNKNOWN или TC_FLAGGED) все
      ячейки с минами(BC_INSTALLED_MINE) и кроме этого нет других закрытых ячеек.
