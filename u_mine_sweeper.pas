@@ -189,7 +189,6 @@ end;
 function T_Mine_Sweeper.get_neighbors_count(py,px:integer): integer;
 { генерирует исключение при выходе координат за пределы размерности матрицы. }
 var
-  dy, dx,
   cy, cx : integer;
   neighbors_counter : integer;
   i: integer;
@@ -522,8 +521,13 @@ begin
    { если верен вышеописаный признак победы в игре, то }
    if ( closed_count=N_mines ) then
     begin
-      for iy:=0 to top_matrix_height-1 do // в циклах откроем всю верхнюю матрицу
+      { в циклах откроем всю верхнюю матрицу, а над минами
+        установим флажки }
+      for iy:=0 to top_matrix_height-1 do
         for ix:=0 to top_matrix_width-1 do
+          if ( in_cell_mine(iy,ix) ) then
+           top_matrix[iy,ix]:=TC_FLAGGED
+          else
            top_matrix[iy,ix]:=TC_OPENED;
       self.f_game_form.Repaint;  // перерисуем игровой дро-грид
       self.change_game_state(GS_WIN); // переключим состояние игры на ВЫИГРЫШ
@@ -690,11 +694,6 @@ procedure T_Mine_Sweeper.drawgrid_OnMouseDown(Sender: TObject; Button: TMouseBut
 { это кастомный обработчик нажатий кнопок мыши в игровом DrawGrid }
 var
   cy, cx: integer;
-  iy, ix : integer;
-  i: integer;
-  yy, xx : integer;
-  flags_count: integer;
-  closed_count : integer;
 begin
    { мышь обрабатываем только если режим игры GS_PLAY }
    if ( game_state<>GS_PLAY) then exit;
@@ -714,27 +713,19 @@ begin
       ((button = mbRight) and (ssLeft in Shift))  then
         begin
            self.mouse_keys_active:=MKA_BOTH; // отметим что зажаты обе клавиши мыши, это нужно для отрисовки аккордов
-           self.chord_recreate(cy,cx); // персоздадим аккорд
+           self.chord_recreate(cy,cx); // пересоздадим аккорд
            self.dg_game_grid.Repaint; // перересуем дро-грид
-           exit; // выйдем из процедуры
-        end;
-
+        end
    { ЛЕВАЯ КЛАВИША.  }
-   if ( Button=mbLeft ) then
+   else if ( Button=mbLeft ) then
      begin
        self.mouse_keys_active:=MKA_LEFT; // отметим что зажата левая клавиша мыши
-       exit; // выйдем из процедуры
-     end;
-
+     end
    { ПРАВАЯ КЛАВИША.   }
-   if ( Button=mbRight ) then
+   else if ( Button=mbRight ) then
      begin
        self.mouse_keys_active:=MKA_RIGHT; // отметим что зажата правая клавиша
-       exit; // выйдем из процедуры
      end;
-
-   { даём команду на перерисовку всего грида }
-   self.dg_game_grid.Repaint;
 end;
 
 procedure T_Mine_Sweeper.drawgrid_OnMouseUp(Sender: TObject;
@@ -743,10 +734,7 @@ procedure T_Mine_Sweeper.drawgrid_OnMouseUp(Sender: TObject;
 var
   cy, cx: integer;
   iy, ix : integer;
-  i: integer;
-  yy, xx : integer;
   flags_count: integer;
-  closed_count : integer;
 begin
   { мышь обрабатываем только если режим игры GS_PLAY }
   if ( game_state<>GS_PLAY) then exit;

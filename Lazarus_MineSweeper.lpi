@@ -10,6 +10,7 @@
       <UseXPManifest Value="True"/>
       <XPManifest>
         <DpiAware Value="True"/>
+        <LongPathAware Value="True"/>
       </XPManifest>
       <Icon Value="0"/>
     </General>
@@ -64,6 +65,48 @@
       <Unit>
         <Filename Value="разбираем_аккорды.txt"/>
         <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="u_start_new.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="f_start_new"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
+      <Unit>
+        <Filename Value="u_records.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="f_records"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
+      <Unit>
+        <Filename Value="u_difficulty_level.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="f_difficulty_level"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
+      <Unit>
+        <Filename Value="u_settings.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="f_settings"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
+      <Unit>
+        <Filename Value="u_about_development_env.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="f_about_development_env"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
+      <Unit>
+        <Filename Value="u_about_program.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="f_about_program"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
       </Unit>
     </Units>
   </ProjectOptions>

@@ -1,11 +1,9 @@
-object f_main: Tf_main
-  Left = 484
-  Height = 574
-  Top = 134
-  Width = 430
-  Caption = 'f_main'
-  ClientHeight = 574
-  ClientWidth = 430
+object f_records: Tf_records
+  Left = 447
+  Height = 240
+  Top = 137
+  Width = 320
+  Caption = 'f_records'
   DesignTimePPI = 110
   Icon.Data = {
     3E42000000000100010040400000010020002842000016000000280000004000
@@ -540,86 +538,6 @@ object f_main: Tf_main
     0000000000000000000000000000000000000000000000000000000000000000
     0000
   }
-  Menu = mm_main
-  OnCloseQuery = FormCloseQuery
-  OnCreate = FormCreate
-  Position = poDesktopCenter
+  Position = poMainFormCenter
   LCLVersion = '3.2.0.0'
-  object dg_refactored_game: TDrawGrid
-    Left = 16
-    Height = 402
-    Top = 8
-    Width = 402
-    ExtendedSelect = False
-    ScrollBars = ssNone
-    TabOrder = 0
-  end
-  object b_start_refactored: TButton
-    Left = 40
-    Height = 32
-    Top = 448
-    Width = 360
-    Caption = 'ОтРефакторенная версия. Начать!'
-    TabOrder = 1
-    OnClick = b_start_refactoredClick
-  end
-  object b_unload_refactored: TButton
-    Left = 40
-    Height = 32
-    Top = 480
-    Width = 360
-    Caption = 'Выгрузить объект minesweeper'
-    TabOrder = 2
-    OnClick = b_unload_refactoredClick
-  end
-  object lb_game_state: TLabel
-    Left = 16
-    Height = 40
-    Top = 408
-    Width = 401
-    Alignment = taCenter
-    AutoSize = False
-    Layout = tlCenter
-  end
-  object mm_main: TMainMenu
-    Left = 56
-    Top = 216
-    object mi_m_game: TMenuItem
-      Caption = 'Игра'
-      object mi_start_game: TMenuItem
-        Caption = 'Начать игру ...'
-        OnClick = mi_start_gameClick
-      end
-      object mi_records: TMenuItem
-        Caption = 'Рекорды ...'
-        OnClick = mi_recordsClick
-      end
-      object mi_exit: TMenuItem
-        Caption = 'Выход'
-        OnClick = mi_exitClick
-      end
-    end
-    object mi_m_settings: TMenuItem
-      Caption = 'Настройки'
-      object mi_difficulty_level: TMenuItem
-        Caption = 'Уровень сложности ...'
-        OnClick = mi_difficulty_levelClick
-      end
-      object mi_settings: TMenuItem
-        Caption = 'Настройки ...'
-        OnClick = mi_settingsClick
-      end
-    end
-    object mi_m_help: TMenuItem
-      Caption = 'Справка'
-      object mi_about_lazarus: TMenuItem
-        Caption = 'О Lazarus ...'
-        OnClick = mi_about_lazarusClick
-      end
-      object mi_about: TMenuItem
-        Caption = 'О программе ...'
-        OnClick = mi_aboutClick
-      end
-    end
-  end
 end
