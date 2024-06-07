@@ -9,7 +9,7 @@ uses
   StdCtrls, Menus, Types, LCLType, Math
   , u_start_new
   , u_records
-  , u_difficulty_level
+  , u_your_difficulty_level
   , u_settings
   , u_about_development_env
   , u_about_program
@@ -31,7 +31,6 @@ type
     mi_records: TMenuItem;
     mi_start_game: TMenuItem;
     mi_settings: TMenuItem;
-    mi_difficulty_level: TMenuItem;
     mi_about_lazarus: TMenuItem;
     mi_about: TMenuItem;
     mi_m_help: TMenuItem;
@@ -44,7 +43,6 @@ type
     procedure FormCreate(Sender: TObject);
     procedure mi_aboutClick(Sender: TObject);
     procedure mi_about_lazarusClick(Sender: TObject);
-    procedure mi_difficulty_levelClick(Sender: TObject);
     procedure mi_exitClick(Sender: TObject);
     procedure mi_recordsClick(Sender: TObject);
     procedure mi_settingsClick(Sender: TObject);
@@ -93,10 +91,11 @@ begin
     Delphi и Lazarus по умолчанию находятся в публичной секции своих модулей }
   Application.CreateForm(Tf_start_new, f_start_new);
   Application.CreateForm(Tf_records, f_records);
-  Application.CreateForm(Tf_difficulty_level, f_difficulty_level);
+  Application.CreateForm(Tf_your_difficulty_level, f_your_difficulty_level);
   Application.CreateForm(Tf_settings, f_settings);
   Application.CreateForm(Tf_about_development_env, f_about_development_env);
   Application.CreateForm(Tf_about_program, f_about_program);
+  { объект T_Mine_Sweeper по умолчанию nil }
 end;
 
 procedure Tf_main.mi_aboutClick(Sender: TObject);
@@ -107,11 +106,6 @@ end;
 procedure Tf_main.mi_about_lazarusClick(Sender: TObject);
 begin
   f_about_development_env.ShowModal;
-end;
-
-procedure Tf_main.mi_difficulty_levelClick(Sender: TObject);
-begin
-  f_difficulty_level.ShowModal;
 end;
 
 procedure Tf_main.mi_exitClick(Sender: TObject);
@@ -132,6 +126,21 @@ end;
 procedure Tf_main.mi_start_gameClick(Sender: TObject);
 begin
   f_start_new.ShowModal;
+  if ( f_start_new.ModalResult=mrOK ) then
+    begin
+      if ( self.mine_sweeper<>nil ) then
+         FreeAndNil(self.mine_sweeper);
+      self.mine_sweeper := T_Mine_Sweeper.Create( self,
+                                          self.dg_refactored_game,
+                                          self.lb_game_state,
+                                          'asset_pack_blue',
+                                          40,
+                                          f_start_new.diff_field_height,
+                                          f_start_new.diff_field_width,
+                                          f_start_new.diff_field_N_mines
+                                        ); // создадим объект T_Mine_Sweeper
+      self.mine_sweeper.start_game; // и сразу же стартуем игру с новыми настройками
+    end;
 end;
 
 procedure Tf_main.b_start_refactoredClick(Sender: TObject);
@@ -141,8 +150,15 @@ begin
       self.mine_sweeper.Free;
       self.mine_sweeper := nil;
     end;
-  self.mine_sweeper := T_Mine_Sweeper.Create( self, self.dg_refactored_game,
-                       self.lb_game_state, 'asset_pack_blue' ); // создадим объект T_Mine_Sweeper
+  self.mine_sweeper := T_Mine_Sweeper.Create( self,
+                                              self.dg_refactored_game,
+                                              self.lb_game_state,
+                                              'asset_pack_blue',
+                                              40,
+                                              10,
+                                              10,
+                                              7
+                                            ); // создадим объект T_Mine_Sweeper
   self.mine_sweeper.start_game; // стартуем игру
 end;
 

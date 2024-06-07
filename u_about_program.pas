@@ -5,7 +5,7 @@ unit u_about_program;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls;
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls;
 
 type
 
@@ -13,6 +13,7 @@ type
 
   Tf_about_program = class(TForm)
     Button1: TButton;
+    Image1: TImage;
     Label1: TLabel;
   private
 

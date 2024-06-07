@@ -81,9 +81,9 @@
         <ResourceBaseClass Value="Form"/>
       </Unit>
       <Unit>
-        <Filename Value="u_difficulty_level.pas"/>
+        <Filename Value="u_your_difficulty_level.pas"/>
         <IsPartOfProject Value="True"/>
-        <ComponentName Value="f_difficulty_level"/>
+        <ComponentName Value="f_your_difficulty_level"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit>

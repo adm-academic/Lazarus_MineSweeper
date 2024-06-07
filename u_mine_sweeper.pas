@@ -11,14 +11,6 @@ uses
   ,u_asset_pack;
 
 const
-  { временно здесь константы игры, которые потом будут браться из объекта настроек или непосредственно из интерфейса, надо будет подумать ! }
-  bottom_matrix_width = 10;
-  bottom_matrix_height= 10;
-  top_matrix_width  = bottom_matrix_width;
-  top_matrix_height = bottom_matrix_width;
-  matrix_width = bottom_matrix_width;
-  matrix_height = bottom_matrix_height;
-  N_mines = 7;
 
   {
     чтобы найти координаты соседей у клеки с координатами py, px достаточно прибавить к py,px смещения
@@ -51,10 +43,21 @@ type
 
   T_Mine_Sweeper = class(TObject)
     private
+       { размерности }
+       bottom_matrix_width : integer;  // Legacy code
+       bottom_matrix_height : integer; // Legacy code
+       top_matrix_width : integer;     // Legacy code
+       top_matrix_height : integer;    // Legacy code
+       matrix_width  : integer;  // ширина матрицы в ячейках
+       matrix_height  : integer; // высота матрицы в ячейках
+       N_mines  : integer;       // количество мин на поле
+       actual_tile_size : dword; // актуальный размер тайлов, отображаемых на игровом гриде
+
+
        f_game_form  : TForm;    // объект формы, на которой расположено игровое поле, передаётся из объемлющего кода в конструктор
        dg_game_grid : TDrawGrid;// объект дро-грида, который работает как игровое поле, передаётся из объемлющего кода в конструктор
        lb_game_state : TLabel;  // объект лэйбла, в котором отображается текущее состояние игры, передаётся из объемлющего кода в конструктор
-       actual_tile_size : dword;// актуальный размер тайлов, отображаемых на игровом гриде
+
 
        asset_pack_name : string;         // имя загруженного ассет пака
        asset_pack_object : T_Asset_Pack; // объект загруженного ассет пака
@@ -92,8 +95,16 @@ type
     protected
 
     public
-      constructor Create( game_form: TForm; game_grid: TDrawGrid; game_state_label: TLabel;
-                          name_of_asset_pack: string ); // конструктор
+      { конструктор }
+      constructor Create( game_form: TForm; // игровая форма
+                          game_grid: TDrawGrid; // игровой дро-грид
+                          game_state_label: TLabel; // игровой лэйбл состояний
+                          name_of_asset_pack: string; // имя применяемого ассет-пака
+                          init_tile_size: integer; // размер тайла из ассет-пака в пикселях (тайлы квадратные)
+                          init_matrix_height: integer; // иницализирует высоту матрицы
+                          init_matrix_width: integer; // инициализирует ширину матрицы
+                          init_N_mines: integer // иницализирует количестов мин на поле
+                          );
       destructor Destroy;override; // деструктор
       procedure drawgrid_OnDrawCell(Sender: TObject; aCol,
                 aRow: Integer; aRect: TRect; aState: TGridDrawState);// обработчик перерисовки ячеек игрового грида
@@ -113,44 +124,6 @@ type
 implementation
 
 { T_Mine_Sweeper }
-
-procedure T_Mine_Sweeper.configure_grid;
-{
-У Lazarus 3.2(а может и у ранних) есть баг, неправильно отрабатывает установка
-свойства ScrollBars в коде программе. Поэтому для игрового грида свойство 'ScrollBars'
-должно быть установлено в 'ssNone' в режиме дизайна на игровой форме.
-}
-begin
-  ///!!!!!!!! сейчас размер тайлов берётся от высоты грида, но иногда нужно будет !!!!!!!!
-  //!!!!!!!!! брать от ширины, это необходимо проработать !!!!!!!!!!!
-  //!!!!!!!!! эту игровую логику следует затащить в программу из проекта KMines !!!!!!!!!!!
-  self.actual_tile_size := self.dg_game_grid.Height div matrix_height;
-
-  self.dg_game_grid.AutoEdit:=False;
-  self.dg_game_grid.ColCount:=matrix_width;
-  self.dg_game_grid.RowCount:=matrix_height;
-  self.dg_game_grid.DefaultColWidth:=self.actual_tile_size;
-  self.dg_game_grid.DefaultRowHeight:=self.actual_tile_size;
-  self.dg_game_grid.DoubleBuffered:=True;
-  self.dg_game_grid.ExtendedSelect:=False;
-  self.dg_game_grid.FixedCols:=0;
-  self.dg_game_grid.FixedRows:=0;
-  self.dg_game_grid.GridLineWidth:=0;
-  { запрет на стандартную отрисовку дро-грида вся отрисовка только вручную }
-  self.dg_game_grid.DefaultDrawing := False;
-  { подгоним размер дро-грида под (размер тайлов*число тайлов + 2 пикселя) }
-  self.dg_game_grid.Width:=self.actual_tile_size * matrix_width + 2;
-  self.dg_game_grid.Height:=self.actual_tile_size * matrix_height + 2;
-
-  { свяжем обработчики событий дро-грида }
-  self.dg_game_grid.OnDrawCell:=@self.drawgrid_OnDrawCell;
-  self.dg_game_grid.OnMouseDown:=@self.drawgrid_OnMouseDown;
-  self.dg_game_grid.OnMouseUp:=@self.drawgrid_OnMouseUp;
-  self.dg_game_grid.OnMouseMove:=@self.drawgrid_OnMouseMove;
-
-  // перерисовка дро-грида после настройки всех его свойств
-  self.dg_game_grid.Repaint;
-end;
 
 function T_Mine_Sweeper.in_cell_mine(py,px:integer):boolean;
 { возвращает истину если в ячейке есть мина
@@ -580,31 +553,94 @@ begin
 
 end;
 
+procedure T_Mine_Sweeper.configure_grid;
+{
+У Lazarus 3.2(а может и у ранних) есть баг, неправильно отрабатывает установка
+свойства ScrollBars в коде программе. Поэтому для игрового грида свойство 'ScrollBars'
+должно быть установлено в 'ssNone' в режиме дизайна на игровой форме.
+}
+begin
+  ///!!!!!!!! сейчас размер тайлов берётся от высоты грида, но иногда нужно будет !!!!!!!!
+  //!!!!!!!!! брать от ширины, это необходимо проработать !!!!!!!!!!!
+  //!!!!!!!!! эту игровую логику следует затащить в программу из проекта KMines !!!!!!!!!!!
+  self.actual_tile_size := self.dg_game_grid.Height div matrix_height;
 
-constructor T_Mine_Sweeper.Create(game_form: TForm; game_grid: TDrawGrid; game_state_label: TLabel;
-  name_of_asset_pack: string);
+  self.dg_game_grid.AutoEdit:=False;
+  self.dg_game_grid.ColCount:=matrix_width;
+  self.dg_game_grid.RowCount:=matrix_height;
+  self.dg_game_grid.DefaultColWidth:=self.actual_tile_size;
+  self.dg_game_grid.DefaultRowHeight:=self.actual_tile_size;
+  self.dg_game_grid.DoubleBuffered:=True;
+  self.dg_game_grid.ExtendedSelect:=False;
+  self.dg_game_grid.FixedCols:=0;
+  self.dg_game_grid.FixedRows:=0;
+  self.dg_game_grid.GridLineWidth:=0;
+  { запрет на стандартную отрисовку дро-грида вся отрисовка только вручную }
+  self.dg_game_grid.DefaultDrawing := False;
+  { подгоним размер дро-грида под (размер тайлов*число тайлов + 2 пикселя) }
+  self.dg_game_grid.Width:=self.actual_tile_size * matrix_width + 2;
+  self.dg_game_grid.Height:=self.actual_tile_size * matrix_height + 2;
+
+  { свяжем обработчики событий дро-грида }
+  self.dg_game_grid.OnDrawCell:=@self.drawgrid_OnDrawCell;
+  self.dg_game_grid.OnMouseDown:=@self.drawgrid_OnMouseDown;
+  self.dg_game_grid.OnMouseUp:=@self.drawgrid_OnMouseUp;
+  self.dg_game_grid.OnMouseMove:=@self.drawgrid_OnMouseMove;
+
+  // перерисовка дро-грида после настройки всех его свойств
+  self.dg_game_grid.Repaint;
+end;
+
+
+constructor T_Mine_Sweeper.Create(
+                          game_form: TForm; // игровая форма
+                          game_grid: TDrawGrid; // игровой дро-грид
+                          game_state_label: TLabel; // игровой лэйбл состояний
+                          name_of_asset_pack: string; // имя применяемого ассет-пака
+                          init_tile_size: integer; // размер тайла из ассет-пака в пикселях (тайлы квадратные)
+                          init_matrix_height: integer; // иницализирует высоту матрицы
+                          init_matrix_width: integer; // инициализирует ширину матрицы
+                          init_N_mines: integer // иницализирует количестов мин на поле
+                          );
 begin
   inherited Create;            // вызовем родительский конструктор
   Randomize; // проинициализируем генератор случайных чисел
+
+  { сохраним в мемберах объекта определяюще важные ссылки на объекты игровой формы }
   self.f_game_form:= game_form; // сохраним объект игровой формы
   self.dg_game_grid:= game_grid; // сохраним объект игрового грида
   self.lb_game_state:=game_state_label; // сохраним объект показа игровых состояний
-
-
-  self.asset_pack_name := name_of_asset_pack;   // сохраним имя ассет пака
+  { сохраним в мемберах объекта определяюще важные параметры ассет-пака }
+  self.asset_pack_name   := name_of_asset_pack;   // сохраним имя ассет пака
   self.asset_pack_object := T_Asset_Pack.Create( self.asset_pack_name ); // загрузим ассет пак
+  self.actual_tile_size  := init_tile_size; // сохраним размер тайла по умолчанию
+  { сохраним в мемберах объекта определяюще важные размерности игрового поля и мин }
+  self.matrix_height := init_matrix_height;
+  self.matrix_width := init_matrix_width;
+  self.bottom_matrix_height:=init_matrix_height;
+  self.bottom_matrix_width:=init_matrix_width;
+  self.top_matrix_height:=init_matrix_height;
+  self.top_matrix_width:=init_matrix_width;
+  self.N_mines:=init_N_mines;
 
-  self.game_state:= GS_IDLE; // состояние игры по умолчанию
-
+  self.game_state:= GS_IDLE; // состояние игры перед стартом
   self.configure_grid; // настроим игровой грид
 
-  self.first_game_turn:= true; // выставим факт первого хода в игре в истину
+end;
 
-  self.chord_delete; //по умолчанию аккорд неактивен
-
-  self.mouse_keys_active:=MKA_NONE; // по умолчанию эта переменная выставлена в ноль ( MKA_NONE )
-
-  //... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
+procedure T_Mine_Sweeper.start_game;
+{
+  эта процедура стартует игру в указанных при создании в методе Create контролах
+  и игровых настройках.
+}
+begin
+   self.generate_bottom_matrix; // проинициализируем нижнюю матрицу
+   self.generate_top_matrix; // проинициализируем верхнюю матрицу
+   self.first_game_turn:= True; // установим флажок первого хода в истину
+   self.chord_delete; // по умолчанию аккорд неактивен и не зажат
+   self.mouse_keys_active:=MKA_NONE; // по умолчанию эта переменная выставлена в ноль ( MKA_NONE )
+   self.change_game_state(GS_PLAY); // переключает состояние объекта на 'Игра'
+   self.dg_game_grid.Repaint;
 end;
 
 destructor T_Mine_Sweeper.Destroy;
@@ -838,19 +874,6 @@ begin
         self.chord_recreate(cy,cx);
         self.dg_game_grid.Repaint;
       end;
-end;
-
-procedure T_Mine_Sweeper.start_game;
-{
-  эта команда стартует игру в указанных при создании в методе Create контролах
-  и с текущими игровыми настройками.
-}
-begin
-   self.generate_bottom_matrix; // проинициализируем нижнюю матрицу
-   self.generate_top_matrix; // проинициализируем верхнюю матрицу
-   self.first_game_turn:= True; // установим флажок первого хода в истину
-   self.change_game_state(GS_PLAY); // переключает состояние объекта на 'Игра'
-   self.dg_game_grid.Repaint;
 end;
 
 procedure T_Mine_Sweeper.process_user_win;

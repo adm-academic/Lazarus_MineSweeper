@@ -1,9 +1,11 @@
 object f_start_new: Tf_start_new
-  Left = 377
-  Height = 240
-  Top = 134
-  Width = 320
-  Caption = 'f_start_new'
+  Left = 481
+  Height = 244
+  Top = 185
+  Width = 458
+  Caption = 'Начать новую игру !'
+  ClientHeight = 244
+  ClientWidth = 458
   DesignTimePPI = 110
   Icon.Data = {
     3E42000000000100010040400000010020002842000016000000280000004000
@@ -540,4 +542,77 @@ object f_start_new: Tf_start_new
   }
   Position = poMainFormCenter
   LCLVersion = '3.2.0.0'
+  object rb_easy: TRadioButton
+    Left = 24
+    Height = 25
+    Top = 24
+    Width = 163
+    Caption = 'Лёгкая сложность'
+    Checked = True
+    TabOrder = 0
+    TabStop = True
+  end
+  object rb_medium: TRadioButton
+    Left = 24
+    Height = 25
+    Top = 64
+    Width = 176
+    Caption = 'Средняя сложность'
+    TabOrder = 1
+  end
+  object rb_hard: TRadioButton
+    Left = 24
+    Height = 25
+    Top = 104
+    Width = 176
+    Caption = 'Высокая сложность'
+    TabOrder = 2
+  end
+  object rb_custom_configuration: TRadioButton
+    Left = 24
+    Height = 25
+    Top = 144
+    Width = 178
+    Caption = 'Своя конфигурация'
+    TabOrder = 3
+  end
+  object b_start: TButton
+    Left = 144
+    Height = 38
+    Top = 184
+    Width = 171
+    Caption = 'Начать игру !'
+    TabOrder = 4
+    OnClick = b_startClick
+  end
+  object Label1: TLabel
+    Left = 224
+    Height = 23
+    Top = 26
+    Width = 130
+    Caption = 'поле 8x8, 10 мин'
+  end
+  object Label2: TLabel
+    Left = 224
+    Height = 23
+    Top = 66
+    Width = 148
+    Caption = 'поле 16x16, 40 мин'
+  end
+  object Label3: TLabel
+    Left = 224
+    Height = 23
+    Top = 106
+    Width = 148
+    Caption = 'поле 30x16, 99 мин'
+  end
+  object b_set_configuration: TButton
+    Left = 224
+    Height = 25
+    Top = 144
+    Width = 214
+    Caption = 'задайте конфигурацию'
+    TabOrder = 5
+    OnClick = b_set_configurationClick
+  end
 end
