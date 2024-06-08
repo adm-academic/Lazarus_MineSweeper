@@ -31,7 +31,7 @@ type
   EOutsideOfMatrix = class(Exception);
 
   PForm = ^TForm; // тип указетеля для формы
-  PDrawGrid = ^TDrawGrid; // тип указателя на дро-грид
+  PDrawGrid = ^TDrawGrid; // тип указателя на дро-грида
 
   { Класс (подразумевается единичное создание, может потом реализую синглтон) игровой логики
     и игровой отрисовки для игры "MineSweeper". В это классе реализована как игровая логика, так и отрисовка
@@ -44,12 +44,8 @@ type
   T_Mine_Sweeper = class(TObject)
     private
        { размерности }
-       bottom_matrix_width : integer;  // Legacy code
-       bottom_matrix_height : integer; // Legacy code
-       top_matrix_width : integer;     // Legacy code
-       top_matrix_height : integer;    // Legacy code
-       matrix_width  : integer;  // ширина матрицы в ячейках
-       matrix_height  : integer; // высота матрицы в ячейках
+       matrix_width  : integer;  // ширина обеих матриц в ячейках
+       matrix_height  : integer; // высота обеих матриц в ячейках
        N_mines  : integer;       // количество мин на поле
        actual_tile_size : dword; // актуальный размер тайлов, отображаемых на игровом гриде
 
@@ -79,8 +75,8 @@ type
        procedure move_mine_to_free_cell(py,px:integer); // перемещает мину в координатах cy,cx в первую попавшуюся пустую ячейку
        procedure check_gamer_win_and_apply; // проверяет победил ли игрок
 
-       procedure generate_top_matrix; // генерирует новую верхнюю матрицу, размеры берутся из констант, ПЕРЕДЕЛАТЬ !!!!!!!!!!!!!!!
-       procedure generate_bottom_matrix; // генерирует новую нижнюю матрицу, размеры берутся из констант, ПЕРЕДЕЛАТЬ !!!!!!!!!!!!!!!!
+       procedure generate_top_matrix; // генерирует новую верхнюю матрицу
+       procedure generate_bottom_matrix; // генерирует новую нижнюю матрицу
     private
        chord_is_active : boolean; // флажок зажатого "аккорда", это когда зажаты одновременно левая и правая кнопки мыши
        chord_cells : TChord_Array; // зажатый аккорд, массив из ячеек входящих в аккорд.
@@ -93,6 +89,11 @@ type
        function  chord_get_flags_count:integer;  // возвращает количество флагов в аккорде
        procedure chord_open; // открывает текущий аккорд по правилам
     protected
+
+    private
+       procedure change_game_state(new_game_state:TGame_State);// переключает состояние игры
+       procedure process_user_win; // вызывается в случае победы юзера
+       procedure process_user_lose;// вызывается в случае поражения юзера
 
     public
       { конструктор }
@@ -116,9 +117,6 @@ type
                 Shift: TShiftState; X, Y: Integer); // обработчик перемещения мышки по игровому гриду, нужно для
                                                     // правильной обработки аккордов
       procedure start_game; // стартует игру с текущими настройками
-      procedure change_game_state(new_game_state:TGame_State);// переключает состояние игры
-      procedure process_user_win; // вызывается в случае победы юзера
-      procedure process_user_lose;// вызывается в случае поражения юзера
   end;
 
 implementation
@@ -130,11 +128,11 @@ function T_Mine_Sweeper.in_cell_mine(py,px:integer):boolean;
  генерирует исключение при выходе координат за пределы размерности матрицы }
 begin
      { проверим переданные координаты на попадание в диапазоны НИЖНЕЙ матрицы }
-     if ( (py<0)or(py>=bottom_matrix_height) ) or
-        ( (px<0)or(px>=bottom_matrix_width)  ) then
+     if ( (py<0)or(py>=matrix_height) ) or
+        ( (px<0)or(px>=matrix_width)  ) then
         raise EOutsideOfMatrix.Create('Координаты y=' + IntToStr(py) +
                                       ',x=' + IntToStr(px) + ' выходят за пределы матрицы, имеющей размер '+
-                                      IntToStr(bottom_matrix_height)+'x'+IntToStr(bottom_matrix_width)
+                                      IntToStr(matrix_height)+'x'+IntToStr(matrix_width)
                                       );
      // Формируем возвращаемое значение о нахождени мины по координатам py,px
      if ( bottom_matrix[py,px]=BC_INSTALLED_MINE ) or
@@ -150,11 +148,11 @@ procedure T_Mine_Sweeper.throw_mine(py,px:integer);
  генерирует исключение при выходе координат за пределы размерности матрицы }
 begin
    { проверим переданные координаты на попадание в диапазоны НИЖНЕЙ матрицы }
-   if ( (py<0)or(py>=bottom_matrix_height) ) or
-        ( (px<0)or(px>=bottom_matrix_width)  ) then
+   if ( (py<0)or(py>=matrix_height) ) or
+        ( (px<0)or(px>=matrix_width)  ) then
         raise EOutsideOfMatrix.Create('Координаты y=' + IntToStr(py) +
                                       ',x=' + IntToStr(px) + ' выходят за пределы матрицы, имеющей размер '+
-                                      IntToStr(bottom_matrix_height)+'x'+IntToStr(bottom_matrix_width)
+                                      IntToStr(matrix_height)+'x'+IntToStr(matrix_width)
                                       );
    bottom_matrix[py,px]:=BC_INSTALLED_MINE; // установим мину по координатам py,px
 end;
@@ -167,11 +165,11 @@ var
   i: integer;
 begin
    { проверим переданные координаты на попадание в диапазоны НИЖНЕЙ матрицы }
-   if ( (py<0)or(py>=bottom_matrix_height) ) or
-        ( (px<0)or(px>=bottom_matrix_width)  ) then
+   if ( (py<0)or(py>=matrix_height) ) or
+        ( (px<0)or(px>=matrix_width)  ) then
         raise EOutsideOfMatrix.Create('Координаты y=' + IntToStr(py) +
                                       ',x=' + IntToStr(px) + ' выходят за пределы матрицы, имеющей размер '+
-                                      IntToStr(bottom_matrix_height)+'x'+IntToStr(bottom_matrix_width)
+                                      IntToStr(matrix_height)+'x'+IntToStr(matrix_width)
                                       );
    // перед началом подсчёта установим счётчик соседних мин в ноль
    neighbors_counter:=0;
@@ -185,8 +183,8 @@ begin
       { вычислим координату очередного соседа через очередное смещение и массив смещений square_offsets }
       cy:=py+square_offsets[i].y;
       cx:=px+square_offsets[i].x;
-      if ( (cy>=0) and (cy<bottom_matrix_height) ) and  // если получившиеся координаты соседа находятся в диапазоне матриц
-      ( (cx>=0) and (cx<bottom_matrix_width) ) then
+      if ( (cy>=0) and (cy<matrix_height) ) and  // если получившиеся координаты соседа находятся в диапазоне матриц
+      ( (cx>=0) and (cx<matrix_width) ) then
         if ( in_cell_mine(cy,cx) )  then // если сосед это мина
            inc( neighbors_counter ); // тогда прирастим счётчик мин на единицу
     end;
@@ -205,11 +203,11 @@ var
   cy,cx: integer;
   i: integer;
 begin
- if (py<0) or (py>=top_matrix_height) or  // если координата неправильная - выходим из процедуры
-    (px<0) or (px>=top_matrix_width) or   // райзить здесь эксепшн не будем, так как такой подход позволит проще
-             (py>=bottom_matrix_height) or  // обрабатывать случаи выхода за пределы диапазонов матриц
-             (py>=bottom_matrix_width) then
-               exit;
+ { если координата неправильная - выходим из процедуры райзить здесь эксепшн
+   не будем, так как такой подход позволит проще обрабатывать случаи выхода за пределы диапазонов матриц }
+ if (py<0) or (py>=matrix_height) or
+    (px<0) or (px>=matrix_width) then
+    exit;
 
  if (top_matrix[py,px]=TC_OPENED) then  //если клетка уже открытая - выходим из процедуры
    exit;
@@ -263,8 +261,8 @@ begin
       { обработка ПРОИГРЫША в игре }
       self.chord_delete; // эта процедура могла быть вызвана при открытии аккорда, поэтому удалим текущий аккорд
                          // чтобы не было артефактов отрисовки в интефейсе
-      for iy:=0 to top_matrix_height-1 do // в циклах откроем всю верхнюю матрицу
-         for ix:=0 to top_matrix_width-1 do
+      for iy:=0 to matrix_height-1 do // в циклах откроем всю верхнюю матрицу
+         for ix:=0 to matrix_width-1 do
              top_matrix[iy,ix]:=TC_OPENED;
       self.dg_game_grid.Repaint;  // перерисуем игровой дро-грид
       self.change_game_state(GS_LOSE); // переключим состояние игры на ПРОИГРЫШ
@@ -276,12 +274,12 @@ var
    iy, ix : integer;
 begin
   /// установим размерность верхней матрицы и перераспределим оперативную память
-  SetLength(top_matrix, top_matrix_height , top_matrix_width );
+  SetLength(top_matrix, matrix_height , matrix_width );
 
   /// окей, теперь нужно очистить верхнюю матрицу, заполнив её
   /// пустыми блоками.
-  for iy:=0 to top_matrix_height-1 do
-    for ix:=0 to top_matrix_width-1 do
+  for iy:=0 to matrix_height-1 do
+    for ix:=0 to matrix_width-1 do
       begin
          top_matrix[iy,ix] := TC_UNKNOWN;
       end;
@@ -294,12 +292,12 @@ var
 begin
   Randomize;
   /// установим размерность нижней матрицы и перераспределим оперативную память
-  SetLength(bottom_matrix, bottom_matrix_height , bottom_matrix_width );
+  SetLength(bottom_matrix, matrix_height , matrix_width );
 
   /// окей, теперь нужно очистить нижнюю матрицу, заполнив её
   /// безмятежно чистою водою в каждой из ячеек матрицы
-  for iy:=0 to bottom_matrix_height-1 do
-    for ix:=0 to bottom_matrix_width-1 do
+  for iy:=0 to matrix_height-1 do
+    for ix:=0 to matrix_width-1 do
       begin
          bottom_matrix[iy,ix] := BC_EMPTY;
       end;
@@ -311,8 +309,8 @@ begin
        mine_installed:=False;
        while not mine_installed do
        begin
-          cy := RandomRange(0,bottom_matrix_height);
-          cx := RandomRange(0,bottom_matrix_width);
+          cy := RandomRange(0,matrix_height);
+          cx := RandomRange(0,matrix_width);
           if ( in_cell_mine(cy,cx) ) then
              continue;
           throw_mine(cy,cx);
@@ -322,8 +320,8 @@ begin
   /// на нижней матрице расставлены мины !
 
   // теперь инициализируем ячейки с циферками !
-  for iy:=0 to bottom_matrix_height-1 do
-    for ix:=0 to bottom_matrix_width-1 do
+  for iy:=0 to matrix_height-1 do
+    for ix:=0 to matrix_width-1 do
       begin
          if not in_cell_mine(iy,ix) then // если в текущей ячейке нету мины
            if get_neighbors_count(iy,ix)<>0 then // если кол-во соседей для текущей ячеки неравно нулю
@@ -348,8 +346,8 @@ begin
   { проверим переданные координаты на попадание в диапазоны ВЕРХНЕЙ матрицы,
     но эксепшн для выхода за пределы вызывать не будем - просто выйдем из процедуры,
     и в результате получим пустой аккорд для некорректных координат }
-  if ( (py<0)or(py>=top_matrix_height) ) or
-     ( (px<0)or(px>=top_matrix_width)  ) then exit;
+  if ( (py<0)or(py>=matrix_height) ) or
+     ( (px<0)or(px>=matrix_width)  ) then exit;
 
 
   { у ячейки 8 соседей, проверим их с помощью массива square_offsets и цикла for
@@ -498,8 +496,8 @@ begin
     begin
       { в циклах откроем всю верхнюю матрицу, а над минами
         установим флажки }
-      for iy:=0 to top_matrix_height-1 do
-        for ix:=0 to top_matrix_width-1 do
+      for iy:=0 to matrix_height-1 do
+        for ix:=0 to matrix_width-1 do
           if ( in_cell_mine(iy,ix) ) then
            top_matrix[iy,ix]:=TC_FLAGGED
           else
@@ -597,7 +595,7 @@ constructor T_Mine_Sweeper.Create(
                           game_grid: TDrawGrid; // игровой дро-грид
                           game_state_label: TLabel; // игровой лэйбл состояний
                           name_of_asset_pack: string; // имя применяемого ассет-пака
-                          init_tile_size: integer; // размер тайла из ассет-пака в пикселях (тайлы квадратные)
+                          init_tile_size: integer; // отображаемый размер тайла из ассет-пака в пикселях (тайлы квадратные)
                           init_matrix_height: integer; // иницализирует высоту матрицы
                           init_matrix_width: integer; // инициализирует ширину матрицы
                           init_N_mines: integer // иницализирует количестов мин на поле
@@ -617,14 +615,10 @@ begin
   { сохраним в мемберах объекта определяюще важные размерности игрового поля и мин }
   self.matrix_height := init_matrix_height;
   self.matrix_width := init_matrix_width;
-  self.bottom_matrix_height:=init_matrix_height;
-  self.bottom_matrix_width:=init_matrix_width;
-  self.top_matrix_height:=init_matrix_height;
-  self.top_matrix_width:=init_matrix_width;
   self.N_mines:=init_N_mines;
 
   self.game_state:= GS_IDLE; // состояние игры перед стартом
-  self.configure_grid; // настроим игровой грид
+  self.configure_grid; // настроим игровой грид в соответвии с сохранённными размерностями
 
 end;
 
@@ -662,8 +656,7 @@ begin
   self.f_game_form:=nil;
 
   // выгрузим объект ассет пака из памяти
-  self.asset_pack_object.Free;
-  self.asset_pack_object:=nil;
+  FreeAndNil(self.asset_pack_object);
 
   //... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
 
@@ -739,11 +732,15 @@ begin
     нам нужно получить координаты ячейки, по которой щёлкнул пользователь
     что мы и делаем ниже... }
    cy := Y div self.dg_game_grid.DefaultRowHeight;
-   if (cy<0) then cy:=0;
-   if (cy>=self.dg_game_grid.DefaultRowHeight-1) then cy:=self.dg_game_grid.DefaultRowHeight-1;
    cx := X div self.dg_game_grid.DefaultColWidth;
+   //---------------------------------------------------------
+   self.lb_game_state.Caption:='B='+inttostr(integer(Button))+',X='+inttostr(X)+',Y='+inttostr(Y)+
+                               ',cx='+inttostr(cx)+',cy='+inttostr(cy);
+   //---------------------------------------------------------
+   if (cy<0) then cy:=0;
+   if (cy>self.dg_game_grid.RowCount-1) then cy:=self.dg_game_grid.RowCount-1;
    if (cx<0) then cx:=0;
-   if (cx>=self.dg_game_grid.DefaultColWidth-1) then cx:=self.dg_game_grid.DefaultRowHeight-1;
+   if (cx>self.dg_game_grid.ColCount-1) then cx:=self.dg_game_grid.ColCount-1;
 
 
    { ОБЕ КЛАВИШИ. пересоздадим аккорд и перересуем дро-грид }
@@ -780,11 +777,15 @@ begin
     нам нужно получить координаты ячейки, по которой щёлкнул пользователь
     что мы и делаем ниже... }
   cy := Y div self.dg_game_grid.DefaultRowHeight;
-  if (cy<0) then cy:=0;
-  if (cy>=self.dg_game_grid.DefaultRowHeight-1) then cy:=self.dg_game_grid.DefaultRowHeight-1;
   cx := X div self.dg_game_grid.DefaultColWidth;
+  //---------------------------------------------------------
+   self.lb_game_state.Caption:='B='+inttostr(integer(Button))+',X='+inttostr(X)+',Y='+inttostr(Y)+
+                               ',cx='+inttostr(cx)+',cy='+inttostr(cy);
+   //---------------------------------------------------------
+  if (cy<0) then cy:=0;
+  if (cy>self.dg_game_grid.RowCount-1) then cy:=self.dg_game_grid.RowCount-1;
   if (cx<0) then cx:=0;
-  if (cx>=self.dg_game_grid.DefaultColWidth-1) then cx:=self.dg_game_grid.DefaultRowHeight-1;
+  if (cx>self.dg_game_grid.ColCount-1) then cx:=self.dg_game_grid.ColCount-1;
 
   { ОБЕ КЛАВИШИ. проверяем аккорд,то есть отпущены ли две клавиши одновременно.
      код проверки двух клавиш найден на просторах Интернета! }
@@ -864,9 +865,9 @@ begin
   cx := X div self.dg_game_grid.DefaultColWidth;
   { если координаты не попадают в дипазоны матрицы - выходим из процедуры }
   if (cy<0) then exit;
-  if (cy>=self.dg_game_grid.DefaultRowHeight-1) then exit;
+  if (cy>self.dg_game_grid.RowCount-1) then exit;
   if (cx<0) then exit;
-  if (cx>=self.dg_game_grid.DefaultColWidth-1) then exit;
+  if (cx>self.dg_game_grid.ColCount-1) then exit;
 
   { обрабатываем перемещение мыши с зажатым аккордом по полю дро-грида }
   if ( self.mouse_keys_active=MKA_BOTH ) then

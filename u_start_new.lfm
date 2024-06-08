@@ -1,11 +1,11 @@
 object f_start_new: Tf_start_new
-  Left = 481
-  Height = 244
-  Top = 185
-  Width = 458
+  Left = 350
+  Height = 327
+  Top = 223
+  Width = 450
   Caption = 'Начать новую игру !'
-  ClientHeight = 244
-  ClientWidth = 458
+  ClientHeight = 327
+  ClientWidth = 450
   DesignTimePPI = 110
   Icon.Data = {
     3E42000000000100010040400000010020002842000016000000280000004000
@@ -540,8 +540,9 @@ object f_start_new: Tf_start_new
     0000000000000000000000000000000000000000000000000000000000000000
     0000
   }
+  OnCreate = FormCreate
   Position = poMainFormCenter
-  LCLVersion = '3.2.0.0'
+  LCLVersion = '3.4.0.0'
   object rb_easy: TRadioButton
     Left = 24
     Height = 25
@@ -579,7 +580,7 @@ object f_start_new: Tf_start_new
   object b_start: TButton
     Left = 144
     Height = 38
-    Top = 184
+    Top = 240
     Width = 171
     Caption = 'Начать игру !'
     TabOrder = 4
@@ -614,5 +615,21 @@ object f_start_new: Tf_start_new
     Caption = 'задайте конфигурацию'
     TabOrder = 5
     OnClick = b_set_configurationClick
+  end
+  object rb_test_v: TRadioButton
+    Left = 24
+    Height = 25
+    Top = 184
+    Width = 116
+    Caption = 'Тест Vertical'
+    TabOrder = 6
+  end
+  object rb_test_h: TRadioButton
+    Left = 224
+    Height = 25
+    Top = 184
+    Width = 139
+    Caption = 'Тест Horizontal'
+    TabOrder = 7
   end
 end

@@ -1,11 +1,11 @@
 object f_main: Tf_main
-  Left = 675
-  Height = 608
-  Top = 28
-  Width = 426
+  Left = 152
+  Height = 575
+  Top = 167
+  Width = 919
   Caption = 'f_main'
-  ClientHeight = 608
-  ClientWidth = 426
+  ClientHeight = 575
+  ClientWidth = 919
   DesignTimePPI = 110
   Icon.Data = {
     3E42000000000100010040400000010020002842000016000000280000004000
@@ -544,7 +544,7 @@ object f_main: Tf_main
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   Position = poDesktopCenter
-  LCLVersion = '3.2.0.0'
+  LCLVersion = '3.4.0.0'
   object dg_refactored_game: TDrawGrid
     Left = 16
     Height = 402

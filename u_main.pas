@@ -128,8 +128,8 @@ begin
   f_start_new.ShowModal;
   if ( f_start_new.ModalResult=mrOK ) then
     begin
-      if ( self.mine_sweeper<>nil ) then
-         FreeAndNil(self.mine_sweeper);
+      if ( self.mine_sweeper<>nil ) then // если игровой объект уже проиницализован -
+         FreeAndNil(self.mine_sweeper);  // то уничтожим его и очистим ссылку
       self.mine_sweeper := T_Mine_Sweeper.Create( self,
                                           self.dg_refactored_game,
                                           self.lb_game_state,
@@ -138,7 +138,8 @@ begin
                                           f_start_new.diff_field_height,
                                           f_start_new.diff_field_width,
                                           f_start_new.diff_field_N_mines
-                                        ); // создадим объект T_Mine_Sweeper
+                                        ); // создадим объект T_Mine_Sweeper с параметрами, которые
+                                           // выбрал пользователь в окне старта игры f_start_new
       self.mine_sweeper.start_game; // и сразу же стартуем игру с новыми настройками
     end;
 end;

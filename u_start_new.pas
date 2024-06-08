@@ -22,12 +22,15 @@ type
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
+    rb_test_h: TRadioButton;
+    rb_test_v: TRadioButton;
     rb_easy: TRadioButton;
     rb_medium: TRadioButton;
     rb_hard: TRadioButton;
     rb_custom_configuration: TRadioButton;
     procedure b_set_configurationClick(Sender: TObject);
     procedure b_startClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
 
   public
@@ -79,8 +82,29 @@ begin
     ShowMessage('Не реализовано !!!');
     self.ModalResult:=mrCancel;
     self.Hide;
+  end
+  else if ( rb_test_v.Checked ) then
+  begin
+    self.diff_level_code:=GD_EASY;
+    self.diff_field_width:=8;
+    self.diff_field_height:=16;
+    self.diff_field_N_mines:=20;
+    self.ModalResult:=mrOK;
+  end
+  else if ( rb_test_h.Checked ) then
+  begin
+    self.diff_level_code:=GD_EASY;
+    self.diff_field_width:=30;
+    self.diff_field_height:=16;
+    self.diff_field_N_mines:=99;
+    self.ModalResult:=mrOK;
   end;
   self.Hide;
+end;
+
+procedure Tf_start_new.FormCreate(Sender: TObject);
+begin
+
 end;
 
 procedure Tf_start_new.b_set_configurationClick(Sender: TObject);
