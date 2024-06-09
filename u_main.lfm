@@ -1,11 +1,11 @@
 object f_main: Tf_main
-  Left = 152
-  Height = 575
-  Top = 167
-  Width = 919
+  Left = 435
+  Height = 523
+  Top = 132
+  Width = 717
   Caption = 'f_main'
-  ClientHeight = 575
-  ClientWidth = 919
+  ClientHeight = 523
+  ClientWidth = 717
   DesignTimePPI = 110
   Icon.Data = {
     3E42000000000100010040400000010020002842000016000000280000004000
@@ -543,47 +543,57 @@ object f_main: Tf_main
   Menu = mm_main
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
+  OnResize = FormResize
   Position = poDesktopCenter
   LCLVersion = '3.4.0.0'
-  object dg_refactored_game: TDrawGrid
-    Left = 16
-    Height = 402
-    Top = 8
-    Width = 402
-    ExtendedSelect = False
-    ScrollBars = ssNone
+  object pn_game: TPanel
+    Left = 20
+    Height = 426
+    Top = 20
+    Width = 677
+    Align = alClient
+    BorderSpacing.Left = 20
+    BorderSpacing.Top = 20
+    BorderSpacing.Right = 20
+    BorderSpacing.Bottom = 20
+    BevelOuter = bvNone
+    ClientHeight = 426
+    ClientWidth = 677
     TabOrder = 0
+    object dg_game: TDrawGrid
+      Left = 144
+      Height = 402
+      Top = 8
+      Width = 402
+      ExtendedSelect = False
+      ScrollBars = ssNone
+      TabOrder = 0
+    end
   end
-  object b_start_refactored: TButton
-    Left = 40
-    Height = 32
-    Top = 448
-    Width = 360
-    Caption = 'ОтРефакторенная версия. Начать!'
+  object pn_statuses: TPanel
+    Left = 0
+    Height = 57
+    Top = 466
+    Width = 717
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 57
+    ClientWidth = 717
     TabOrder = 1
-    OnClick = b_start_refactoredClick
-  end
-  object b_unload_refactored: TButton
-    Left = 40
-    Height = 32
-    Top = 480
-    Width = 360
-    Caption = 'Выгрузить объект minesweeper'
-    TabOrder = 2
-    OnClick = b_unload_refactoredClick
-  end
-  object lb_game_state: TLabel
-    Left = 16
-    Height = 40
-    Top = 408
-    Width = 401
-    Alignment = taCenter
-    AutoSize = False
-    Layout = tlCenter
+    object lb_game_state: TLabel
+      Left = 316
+      Height = 57
+      Top = 0
+      Width = 401
+      Align = alRight
+      Alignment = taCenter
+      AutoSize = False
+      Layout = tlCenter
+    end
   end
   object mm_main: TMainMenu
-    Left = 56
-    Top = 216
+    Left = 24
+    Top = 480
     object mi_m_game: TMenuItem
       Caption = 'Игра'
       object mi_start_game: TMenuItem

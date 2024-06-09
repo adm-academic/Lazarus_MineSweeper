@@ -10,6 +10,7 @@ uses
   ,u_minesweeper_types
   ,u_asset_pack;
 
+
 const
 
   {
@@ -47,7 +48,7 @@ type
        matrix_width  : integer;  // ширина обеих матриц в ячейках
        matrix_height  : integer; // высота обеих матриц в ячейках
        N_mines  : integer;       // количество мин на поле
-       actual_tile_size : dword; // актуальный размер тайлов, отображаемых на игровом гриде
+       actual_tile_size : integer; // актуальный размер тайлов, отображаемых на игровом гриде
 
 
        f_game_form  : TForm;    // объект формы, на которой расположено игровое поле, передаётся из объемлющего кода в конструктор
@@ -67,7 +68,6 @@ type
 
        mouse_keys_active : TMouse_Keys_Active; // храним какая клавиша мыши зажата юзером, пока он не отпустит её или их
 
-       procedure configure_grid; // в этой процедуре мы производим все требуемые настройки грида
        function  in_cell_mine(py,px:integer):boolean; // возвращает истину если по указанных координатам есть мина
        procedure throw_mine(py,px:integer); // устанавливает мину по указанным координатам
        function  get_neighbors_count(py,px:integer): integer; // возвращает число мин, соседствующих с ячейкой py,px
@@ -77,7 +77,12 @@ type
 
        procedure generate_top_matrix; // генерирует новую верхнюю матрицу
        procedure generate_bottom_matrix; // генерирует новую нижнюю матрицу
-    private
+
+       procedure change_game_state(new_game_state:TGame_State);// переключает состояние игры
+       procedure process_user_win; // вызывается в случае победы юзера
+       procedure process_user_lose;// вызывается в случае поражения юзера
+
+    private { блок мемберов и методов для поддержки аккордов }
        chord_is_active : boolean; // флажок зажатого "аккорда", это когда зажаты одновременно левая и правая кнопки мыши
        chord_cells : TChord_Array; // зажатый аккорд, массив из ячеек входящих в аккорд.
        chord_center_coord : TCoord; // координаты центра аккорда
@@ -89,11 +94,6 @@ type
        function  chord_get_flags_count:integer;  // возвращает количество флагов в аккорде
        procedure chord_open; // открывает текущий аккорд по правилам
     protected
-
-    private
-       procedure change_game_state(new_game_state:TGame_State);// переключает состояние игры
-       procedure process_user_win; // вызывается в случае победы юзера
-       procedure process_user_lose;// вызывается в случае поражения юзера
 
     public
       { конструктор }
@@ -117,6 +117,8 @@ type
                 Shift: TShiftState; X, Y: Integer); // обработчик перемещения мышки по игровому гриду, нужно для
                                                     // правильной обработки аккордов
       procedure start_game; // стартует игру с текущими настройками
+      procedure configure_grid; // в этой процедуре мы производим все требуемые настройки грида
+      procedure resize_game_grid(new_tile_size:integer);
   end;
 
 implementation
@@ -552,32 +554,30 @@ begin
 end;
 
 procedure T_Mine_Sweeper.configure_grid;
-{
-У Lazarus 3.2(а может и у ранних) есть баг, неправильно отрабатывает установка
-свойства ScrollBars в коде программе. Поэтому для игрового грида свойство 'ScrollBars'
-должно быть установлено в 'ssNone' в режиме дизайна на игровой форме.
-}
+var
+   tmp : integer;
 begin
-  ///!!!!!!!! сейчас размер тайлов берётся от высоты грида, но иногда нужно будет !!!!!!!!
-  //!!!!!!!!! брать от ширины, это необходимо проработать !!!!!!!!!!!
-  //!!!!!!!!! эту игровую логику следует затащить в программу из проекта KMines !!!!!!!!!!!
-  self.actual_tile_size := self.dg_game_grid.Height div matrix_height;
+  {
+   У Lazarus 3.2(а может и у ранних) есть баг, неправильно отрабатывает установка
+   свойства ScrollBars в коде программы. Поэтому для игрового грида свойство 'ScrollBars'
+   должно быть установлено в 'ssNone' в режиме дизайна на игровой форме.
+  }
 
+  { запрет на стандартную отрисовку дро-грида. вся отрисовка только вручную }
+  self.dg_game_grid.DefaultDrawing := False;
+
+  { настроим игровой грида так как нужно для игры }
   self.dg_game_grid.AutoEdit:=False;
   self.dg_game_grid.ColCount:=matrix_width;
   self.dg_game_grid.RowCount:=matrix_height;
-  self.dg_game_grid.DefaultColWidth:=self.actual_tile_size;
-  self.dg_game_grid.DefaultRowHeight:=self.actual_tile_size;
   self.dg_game_grid.DoubleBuffered:=True;
   self.dg_game_grid.ExtendedSelect:=False;
   self.dg_game_grid.FixedCols:=0;
   self.dg_game_grid.FixedRows:=0;
   self.dg_game_grid.GridLineWidth:=0;
-  { запрет на стандартную отрисовку дро-грида вся отрисовка только вручную }
-  self.dg_game_grid.DefaultDrawing := False;
-  { подгоним размер дро-грида под (размер тайлов*число тайлов + 2 пикселя) }
-  self.dg_game_grid.Width:=self.actual_tile_size * matrix_width + 2;
-  self.dg_game_grid.Height:=self.actual_tile_size * matrix_height + 2;
+
+  tmp:=self.actual_tile_size;
+  self.resize_game_grid( tmp );
 
   { свяжем обработчики событий дро-грида }
   self.dg_game_grid.OnDrawCell:=@self.drawgrid_OnDrawCell;
@@ -585,10 +585,32 @@ begin
   self.dg_game_grid.OnMouseUp:=@self.drawgrid_OnMouseUp;
   self.dg_game_grid.OnMouseMove:=@self.drawgrid_OnMouseMove;
 
-  // перерисовка дро-грида после настройки всех его свойств
+  { перерисовка дро-грида после настройки всех его свойств }
   self.dg_game_grid.Repaint;
 end;
 
+procedure T_Mine_Sweeper.resize_game_grid(new_tile_size: integer);
+begin
+  self.actual_tile_size :=  new_tile_size;
+
+  { подгоним размер дро-грида под (размер тайлов*число тайлов + 2 пикселя) }
+  {$IfDef LINUX}
+  self.dg_game_grid.Width:=self.actual_tile_size * matrix_width + 2;
+  self.dg_game_grid.Height:=self.actual_tile_size * matrix_height + 2;
+  self.dg_game_grid.DefaultColWidth:=self.actual_tile_size;
+  self.dg_game_grid.DefaultRowHeight:=self.actual_tile_size;
+  {$EndIf}
+
+  {$IfDef WINDOWS}
+  self.dg_game_grid.Width:=self.actual_tile_size * matrix_width + 2;
+  self.dg_game_grid.Height:=self.actual_tile_size * matrix_height + 2;
+  self.dg_game_grid.DefaultColWidth:=self.actual_tile_size;
+  self.dg_game_grid.DefaultRowHeight:=self.actual_tile_size;
+  {$EndIf}
+
+  self.dg_game_grid.Repaint;
+
+end;
 
 constructor T_Mine_Sweeper.Create(
                           game_form: TForm; // игровая форма
@@ -636,6 +658,7 @@ begin
    self.change_game_state(GS_PLAY); // переключает состояние объекта на 'Игра'
    self.dg_game_grid.Repaint;
 end;
+
 
 destructor T_Mine_Sweeper.Destroy;
 begin
@@ -733,10 +756,6 @@ begin
     что мы и делаем ниже... }
    cy := Y div self.dg_game_grid.DefaultRowHeight;
    cx := X div self.dg_game_grid.DefaultColWidth;
-   //---------------------------------------------------------
-   self.lb_game_state.Caption:='B='+inttostr(integer(Button))+',X='+inttostr(X)+',Y='+inttostr(Y)+
-                               ',cx='+inttostr(cx)+',cy='+inttostr(cy);
-   //---------------------------------------------------------
    if (cy<0) then cy:=0;
    if (cy>self.dg_game_grid.RowCount-1) then cy:=self.dg_game_grid.RowCount-1;
    if (cx<0) then cx:=0;
@@ -778,10 +797,6 @@ begin
     что мы и делаем ниже... }
   cy := Y div self.dg_game_grid.DefaultRowHeight;
   cx := X div self.dg_game_grid.DefaultColWidth;
-  //---------------------------------------------------------
-   self.lb_game_state.Caption:='B='+inttostr(integer(Button))+',X='+inttostr(X)+',Y='+inttostr(Y)+
-                               ',cx='+inttostr(cx)+',cy='+inttostr(cy);
-   //---------------------------------------------------------
   if (cy<0) then cy:=0;
   if (cy>self.dg_game_grid.RowCount-1) then cy:=self.dg_game_grid.RowCount-1;
   if (cx<0) then cx:=0;
