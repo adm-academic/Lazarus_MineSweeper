@@ -22,8 +22,7 @@ type
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
-    rb_test_h: TRadioButton;
-    rb_test_v: TRadioButton;
+    lb_custom_string: TLabel;
     rb_easy: TRadioButton;
     rb_medium: TRadioButton;
     rb_hard: TRadioButton;
@@ -31,6 +30,7 @@ type
     procedure b_set_configurationClick(Sender: TObject);
     procedure b_startClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormPaint(Sender: TObject);
   private
 
   public
@@ -54,8 +54,8 @@ begin
   if ( rb_easy.Checked ) then
   begin
     self.diff_level_code:=GD_EASY;
-    self.diff_field_width:=8;
-    self.diff_field_height:=8;
+    self.diff_field_width:=9;
+    self.diff_field_height:=9;
     self.diff_field_N_mines:=10;
     self.ModalResult:=mrOK;
   end
@@ -78,25 +78,9 @@ begin
   else if ( rb_custom_configuration.Checked ) then
   begin
     self.diff_level_code:=GD_CUSTOM;
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ShowMessage('Не реализовано !!!');
-    self.ModalResult:=mrCancel;
-    self.Hide;
-  end
-  else if ( rb_test_v.Checked ) then
-  begin
-    self.diff_level_code:=GD_EASY;
-    self.diff_field_width:=8;
-    self.diff_field_height:=16;
-    self.diff_field_N_mines:=20;
-    self.ModalResult:=mrOK;
-  end
-  else if ( rb_test_h.Checked ) then
-  begin
-    self.diff_level_code:=GD_EASY;
-    self.diff_field_width:=30;
-    self.diff_field_height:=16;
-    self.diff_field_N_mines:=99;
+    self.diff_field_width:=f_your_difficulty_level.se_colcount.Value;
+    self.diff_field_height:=f_your_difficulty_level.se_rowcount.Value;
+    self.diff_field_N_mines:=f_your_difficulty_level.se_N_mines.Value;
     self.ModalResult:=mrOK;
   end;
   self.Hide;
@@ -104,7 +88,20 @@ end;
 
 procedure Tf_start_new.FormCreate(Sender: TObject);
 begin
+   { Значения для формы по-умолчанию при запуске программы,
+     выставим лёгкий уровень }
+   self.rb_easy.Checked:=True;
+   self.diff_level_code:=GD_EASY;
+   self.diff_field_width:=9;
+   self.diff_field_height:=9;
+   self.diff_field_N_mines:=10;
+end;
 
+procedure Tf_start_new.FormPaint(Sender: TObject);
+begin
+  self.lb_custom_string.Caption:='СВОЯ: Столбцов='+inttostr(f_your_difficulty_level.se_colcount.Value) + '; '
+                                + 'Строк=' + inttostr(f_your_difficulty_level.se_rowcount.Value) + '; '
+                                + 'Мин='+ inttostr(f_your_difficulty_level.se_N_mines.Value) + ';';
 end;
 
 procedure Tf_start_new.b_set_configurationClick(Sender: TObject);
@@ -113,10 +110,8 @@ var
 begin
   rb_custom_configuration.Checked:=True;
   self.Repaint;
-  tmp_modal_result:=f_your_difficulty_level.ShowModal;
-  self.ModalResult:=tmp_modal_result;
-  self.Hide;
-  // !!!!!!!!!!!!!!!!!!!!! улучшить логику интерфейса формы для создания новой игры!
+  Application.ProcessMessages;
+  f_your_difficulty_level.ShowModal;
 end;
 
 end.
