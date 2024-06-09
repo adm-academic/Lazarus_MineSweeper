@@ -1,7 +1,7 @@
 object f_main: Tf_main
-  Left = 435
+  Left = 350
   Height = 523
-  Top = 132
+  Top = 124
   Width = 717
   Caption = 'f_main'
   ClientHeight = 523
