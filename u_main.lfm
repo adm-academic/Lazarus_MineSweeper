@@ -591,30 +591,30 @@ object f_main: Tf_main
       Layout = tlCenter
     end
     object lb_game_mines: TLabel
-      Left = 57
+      Left = 162
       Height = 41
       Top = 0
-      Width = 165
+      Width = 130
       Align = alRight
       Alignment = taCenter
       AutoSize = False
       Layout = tlCenter
     end
     object lb_game_flags: TLabel
-      Left = 222
+      Left = 292
       Height = 41
       Top = 0
-      Width = 165
+      Width = 130
       Align = alRight
       Alignment = taCenter
       AutoSize = False
       Layout = tlCenter
     end
     object lb_game_time: TLabel
-      Left = 387
+      Left = 422
       Height = 41
       Top = 0
-      Width = 165
+      Width = 130
       Align = alRight
       Alignment = taCenter
       AutoSize = False
