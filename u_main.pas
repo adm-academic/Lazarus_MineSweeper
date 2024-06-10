@@ -25,6 +25,9 @@ type
   Tf_main = class(TForm)
     dg_game: TDrawGrid;
     lb_game_state: TLabel;
+    lb_game_mines: TLabel;
+    lb_game_flags: TLabel;
+    lb_game_time: TLabel;
     mi_exit: TMenuItem;
     mi_records: TMenuItem;
     mi_start_game: TMenuItem;
@@ -95,6 +98,9 @@ begin
   self.mine_sweeper := T_Mine_Sweeper.Create(
                                       self,   // передадим объект игровой формы
                                       self.dg_game, // передадим объект игрового грида
+                                      self.lb_game_mines,
+                                      self.lb_game_flags,
+                                      self.lb_game_time,
                                       self.lb_game_state, // передадим объект лэйбл игрвого состояния
                                       'asset_pack_blue', // передадим имя эссет-пака
                                       self.get_form_current_tile_size, // передадим размер тайла
@@ -170,6 +176,9 @@ begin
       self.mine_sweeper := T_Mine_Sweeper.Create(
                                           self,   // передадим объект игровой формы
                                           self.dg_game, // передадим объект игрового грида
+                                          self.lb_game_mines,
+                                          self.lb_game_flags,
+                                          self.lb_game_time,
                                           self.lb_game_state, // передадим объект лэйбл игрвого состояния
                                           'asset_pack_blue', // передадим имя эссет-пака
                                           self.get_form_current_tile_size, // передадим размер тайла

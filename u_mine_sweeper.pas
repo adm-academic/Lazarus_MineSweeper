@@ -44,6 +44,9 @@ type
 
   T_Mine_Sweeper = class(TObject)
     private
+       { таймер }
+       tm_game_timer: TTimer;
+       gametime_ticks : integer;
        { размерности }
        matrix_width  : integer;  // ширина обеих матриц в ячейках
        matrix_height  : integer; // высота обеих матриц в ячейках
@@ -54,6 +57,10 @@ type
        f_game_form  : TForm;    // объект формы, на которой расположено игровое поле, передаётся из объемлющего кода в конструктор
        dg_game_grid : TDrawGrid;// объект дро-грида, который работает как игровое поле, передаётся из объемлющего кода в конструктор
        lb_game_state : TLabel;  // объект лэйбла, в котором отображается текущее состояние игры, передаётся из объемлющего кода в конструктор
+
+         lb_flags_label: TLabel; // лэйбл для отображения количества флагов
+         lb_mines_label: TLabel; // лэйбл для отображения количества мин
+         lb_time_label: TLabel;  // лэйбл для отображения текущего времени игры
 
 
        asset_pack_name : string;         // имя загруженного ассет пака
@@ -99,6 +106,9 @@ type
       { конструктор }
       constructor Create( game_form: TForm; // игровая форма
                           game_grid: TDrawGrid; // игровой дро-грид
+                          game_mines_label: TLabel; // лэйбл для отображения количества мин
+                          game_flags_label: TLabel; // лэйбл для отображения количества флагов
+                          game_time_label: TLabel;  // лэйбл для отображения текущего времени игры
                           game_state_label: TLabel; // игровой лэйбл состояний
                           name_of_asset_pack: string; // имя применяемого ассет-пака
                           init_tile_size: integer; // размер тайла из ассет-пака в пикселях (тайлы квадратные)
@@ -107,6 +117,7 @@ type
                           init_N_mines: integer // иницализирует количестов мин на поле
                           );
       destructor Destroy;override; // деструктор
+      procedure  timer_OnTimer(Sender: TObject);
       procedure drawgrid_OnDrawCell(Sender: TObject; aCol,
                 aRow: Integer; aRect: TRect; aState: TGridDrawState);// обработчик перерисовки ячеек игрового грида
       procedure drawgrid_OnMouseDown(Sender: TObject; Button: TMouseButton;// обработчик нажатия мышки на игровом гриде
@@ -118,7 +129,8 @@ type
                                                     // правильной обработки аккордов
       procedure start_game; // стартует игру с текущими настройками
       procedure configure_grid; // в этой процедуре мы производим все требуемые настройки грида
-      procedure resize_game_grid(new_tile_size:integer);
+      procedure resize_game_grid(new_tile_size:integer); // меняет размер ячеек и всего грида передавая размер тайла
+      function  get_game_duration_in_seconds:integer; // возвращает длительность завершённой игровой партии
   end;
 
 implementation
@@ -537,8 +549,14 @@ begin
   case new_game_state of   // определяем строку для каждого из возможных состояний
     GS_IDLE : str_state:='ОЖИДАНИЕ';
     GS_PLAY : str_state:='ИГРАЕМ';
-    GS_LOSE : str_state:='ИГРА ПРОИГРАНА !';
-    GS_WIN  : str_state:='ВЫ ВЫИГРАЛИ !';
+    GS_LOSE : begin
+                 str_state:='ИГРА ПРОИГРАНА !';
+                 self.tm_game_timer.Enabled:=False; // остановим таймер так игра проиграна и дальше тикать бессмысленно
+              end;
+    GS_WIN  : begin
+                 str_state:='ВЫ ВЫИГРАЛИ !';
+                 self.tm_game_timer.Enabled:=False; // игра выиграна! таймер нужно остановить!
+              end;
   end;
   self.game_state:=new_game_state; // меняем значения поля состояния объекта на переданный в этот метод
   self.lb_game_state.Caption:=str_state; // помещаем текстовое описание состояния в лэйбл игровых состояний
@@ -612,9 +630,17 @@ begin
 
 end;
 
+function T_Mine_Sweeper.get_game_duration_in_seconds: integer;
+begin
+   Result:= self.gametime_ticks div 10;
+end;
+
 constructor T_Mine_Sweeper.Create(
                           game_form: TForm; // игровая форма
                           game_grid: TDrawGrid; // игровой дро-грид
+                          game_mines_label: TLabel; // лэйбл для отображения количества мин
+                          game_flags_label: TLabel; // лэйбл для отображения количества флагов
+                          game_time_label: TLabel;  // лэйбл для отображения текущего времени игры
                           game_state_label: TLabel; // игровой лэйбл состояний
                           name_of_asset_pack: string; // имя применяемого ассет-пака
                           init_tile_size: integer; // отображаемый размер тайла из ассет-пака в пикселях (тайлы квадратные)
@@ -630,6 +656,15 @@ begin
   self.f_game_form:= game_form; // сохраним объект игровой формы
   self.dg_game_grid:= game_grid; // сохраним объект игрового грида
   self.lb_game_state:=game_state_label; // сохраним объект показа игровых состояний
+
+  self.lb_flags_label:=game_flags_label;  // лэйбл для отображения количества флагов
+  self.lb_mines_label:=game_mines_label;  // лэйбл для отображения количества мин
+  self.lb_time_label:=game_time_label;    // лэйбл для отображения текущего времени игры
+  { установим строки по-умолчанию }
+  self.lb_flags_label.Caption:='Флагов:0';
+  self.lb_mines_label.Caption:='Мин:0';
+  self.lb_time_label.Caption:='0:0:0';
+
   { сохраним в мемберах объекта определяюще важные параметры ассет-пака }
   self.asset_pack_name   := name_of_asset_pack;   // сохраним имя ассет пака
   self.asset_pack_object := T_Asset_Pack.Create( self.asset_pack_name ); // загрузим ассет пак
@@ -641,6 +676,12 @@ begin
 
   self.game_state:= GS_IDLE; // состояние игры перед стартом
   self.configure_grid; // настроим игровой грид в соответвии с сохранённными размерностями
+
+  { настраиваем таймер }
+  self.tm_game_timer:=TTimer.Create(self.f_game_form);
+  self.tm_game_timer.Interval:= 1000 div 10 ; // 10 тиков таймера в секунду
+  self.tm_game_timer.OnTimer:=@self.timer_OnTimer;
+  self.tm_game_timer.OnStopTimer:=@self.timer_OnTimer;
 
 end;
 
@@ -656,7 +697,10 @@ begin
    self.chord_delete; // по умолчанию аккорд неактивен и не зажат
    self.mouse_keys_active:=MKA_NONE; // по умолчанию эта переменная выставлена в ноль ( MKA_NONE )
    self.change_game_state(GS_PLAY); // переключает состояние объекта на 'Игра'
-   self.dg_game_grid.Repaint;
+   self.dg_game_grid.Repaint; // перерисуеем игровой грид
+   self.gametime_ticks:=0;
+   self.lb_mines_label.Caption:='Мин:'+inttostr(self.N_mines);
+   self.tm_game_timer.Enabled:=True; // запустим игровой таймер
 end;
 
 
@@ -680,10 +724,36 @@ begin
 
   // выгрузим объект ассет пака из памяти
   FreeAndNil(self.asset_pack_object);
-
-  //... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
+  // выгрузим объект таймера из памяти
+  self.tm_game_timer.OnTimer:=nil;
+  self.tm_game_timer.OnStopTimer:=nil;
+  FreeAndNil(self.tm_game_timer);
+  //
 
   inherited Destroy; // вызовем родительский деструктор
+end;
+
+procedure T_Mine_Sweeper.timer_OnTimer(Sender: TObject);
+var
+   total_seconds,seconds, minutes, hours : integer;
+   time_str: string;
+begin
+   Inc(self.gametime_ticks); // время в классе хранится в тиках. сейчас тик - 0,1 секунды
+
+   total_seconds:=self.gametime_ticks div 10; // здесь храним число прошедших секунд с начала запуска таймера
+
+   { подсчитаем отдельно часы:минуты:секунды }
+   hours:=total_seconds div 3600;
+   minutes:=total_seconds div 60 mod 60;
+   seconds:=total_seconds mod 60;
+
+   time_str:= inttostr(hours)+':'+inttostr(minutes)+':'+inttostr(seconds);
+
+   self.lb_time_label.Caption:=time_str;
+
+   if ((total_seconds mod 10)=0) then
+     self.lb_time_label.Repaint;
+
 end;
 
 procedure T_Mine_Sweeper.drawgrid_OnDrawCell(Sender: TObject; aCol,
@@ -853,7 +923,7 @@ begin
      for ix:=0 to matrix_width-1 do
       if top_matrix[iy,ix]=TC_FLAGGED then
        inc(flags_count);
-   // !!!!!!!!!! вывод количества флагов в интерфейсе !!!!!!!!!
+   self.lb_flags_label.Caption:='Флагов:'+IntToStr(flags_count);
 
    { сбросим состояние всех клавиш в ноль, даже если отжата какая-то одна,
     возможны косяки в интерфейсе, но это оставим напотом !!!!!!!!!!!!!!!!!!!!!!!!!!! }
