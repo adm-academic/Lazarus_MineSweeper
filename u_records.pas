@@ -51,18 +51,16 @@ begin
   self.records_manager.f_read_all_records;
 
   { выведем рекорды в StringGrid }
-  total_i:=0;
   self.StringGrid1.RowCount:=1;
   for i:=0 to self.records_manager.records_easy.Count-1 do
   begin
     self.StringGrid1.RowCount:=self.StringGrid1.RowCount+1;
-    self.StringGrid1.Cells[0,i+1+total_i]:='Лёгкая';
-    self.StringGrid1.Cells[1,i+1+total_i]:=self.records_manager.records_easy[i].nickname;
-    self.StringGrid1.Cells[2,i+1+total_i]:=inttostr(self.records_manager.records_easy[i].gametime_seconds);
-    self.StringGrid1.Cells[3,i+1+total_i]:=inttostr(self.records_manager.records_easy[i].field_height);
-    self.StringGrid1.Cells[4,i+1+total_i]:=inttostr(self.records_manager.records_easy[i].field_width);
-    self.StringGrid1.Cells[5,i+1+total_i]:=inttostr(self.records_manager.records_easy[i].field_N_mines);
-    inc(total_i);
+    self.StringGrid1.Cells[0,self.StringGrid1.RowCount-1]:='Лёгкая';
+    self.StringGrid1.Cells[1,self.StringGrid1.RowCount-1]:=self.records_manager.records_easy[i].nickname;
+    self.StringGrid1.Cells[2,self.StringGrid1.RowCount-1]:=inttostr(self.records_manager.records_easy[i].gametime_seconds);
+    self.StringGrid1.Cells[3,self.StringGrid1.RowCount-1]:=inttostr(self.records_manager.records_easy[i].field_height);
+    self.StringGrid1.Cells[4,self.StringGrid1.RowCount-1]:=inttostr(self.records_manager.records_easy[i].field_width);
+    self.StringGrid1.Cells[5,self.StringGrid1.RowCount-1]:=inttostr(self.records_manager.records_easy[i].field_N_mines);
   end;
 
 
@@ -70,26 +68,24 @@ begin
   for i:=0 to self.records_manager.records_medium.Count-1 do
   begin
     self.StringGrid1.RowCount:=self.StringGrid1.RowCount+1;
-    self.StringGrid1.Cells[0,i+1+total_i]:='Средняя';
-    self.StringGrid1.Cells[1,i+1+total_i]:=self.records_manager.records_medium[i].nickname;
-    self.StringGrid1.Cells[2,i+1+total_i]:=inttostr(self.records_manager.records_medium[i].gametime_seconds);
-    self.StringGrid1.Cells[3,i+1+total_i]:=inttostr(self.records_manager.records_medium[i].field_height);
-    self.StringGrid1.Cells[4,i+1+total_i]:=inttostr(self.records_manager.records_medium[i].field_width);
-    self.StringGrid1.Cells[5,i+1+total_i]:=inttostr(self.records_manager.records_medium[i].field_N_mines);
-    inc(total_i);
+    self.StringGrid1.Cells[0,self.StringGrid1.RowCount-1]:='Средняя';
+    self.StringGrid1.Cells[1,self.StringGrid1.RowCount-1]:=self.records_manager.records_medium[i].nickname;
+    self.StringGrid1.Cells[2,self.StringGrid1.RowCount-1]:=inttostr(self.records_manager.records_medium[i].gametime_seconds);
+    self.StringGrid1.Cells[3,self.StringGrid1.RowCount-1]:=inttostr(self.records_manager.records_medium[i].field_height);
+    self.StringGrid1.Cells[4,self.StringGrid1.RowCount-1]:=inttostr(self.records_manager.records_medium[i].field_width);
+    self.StringGrid1.Cells[5,self.StringGrid1.RowCount-1]:=inttostr(self.records_manager.records_medium[i].field_N_mines);
   end;
 
   { выведем рекорды в StringGrid }
   for i:=0 to self.records_manager.records_hard.Count-1 do
   begin
     self.StringGrid1.RowCount:=self.StringGrid1.RowCount+1;
-    self.StringGrid1.Cells[0,i+1+total_i]:='Высокая';
-    self.StringGrid1.Cells[1,i+1+total_i]:=self.records_manager.records_hard[i].nickname;
-    self.StringGrid1.Cells[2,i+1+total_i]:=inttostr(self.records_manager.records_hard[i].gametime_seconds);
-    self.StringGrid1.Cells[3,i+1+total_i]:=inttostr(self.records_manager.records_hard[i].field_height);
-    self.StringGrid1.Cells[4,i+1+total_i]:=inttostr(self.records_manager.records_hard[i].field_width);
-    self.StringGrid1.Cells[5,i+1+total_i]:=inttostr(self.records_manager.records_hard[i].field_N_mines);
-    inc(total_i);
+    self.StringGrid1.Cells[0,self.StringGrid1.RowCount-1]:='Высокая';
+    self.StringGrid1.Cells[1,self.StringGrid1.RowCount-1]:=self.records_manager.records_hard[i].nickname;
+    self.StringGrid1.Cells[2,self.StringGrid1.RowCount-1]:=inttostr(self.records_manager.records_hard[i].gametime_seconds);
+    self.StringGrid1.Cells[3,self.StringGrid1.RowCount-1]:=inttostr(self.records_manager.records_hard[i].field_height);
+    self.StringGrid1.Cells[4,self.StringGrid1.RowCount-1]:=inttostr(self.records_manager.records_hard[i].field_width);
+    self.StringGrid1.Cells[5,self.StringGrid1.RowCount-1]:=inttostr(self.records_manager.records_hard[i].field_N_mines);
   end;
 
 
@@ -97,13 +93,12 @@ begin
   for i:=0 to self.records_manager.records_custom.Count-1 do
   begin
     self.StringGrid1.RowCount:=self.StringGrid1.RowCount+1;
-    self.StringGrid1.Cells[0,i+1+total_i]:='Своя';
-    self.StringGrid1.Cells[1,i+1+total_i]:=self.records_manager.records_custom[i].nickname;
-    self.StringGrid1.Cells[2,i+1+total_i]:=inttostr(self.records_manager.records_custom[i].gametime_seconds);
-    self.StringGrid1.Cells[3,i+1+total_i]:=inttostr(self.records_manager.records_custom[i].field_height);
-    self.StringGrid1.Cells[4,i+1+total_i]:=inttostr(self.records_manager.records_custom[i].field_width);
-    self.StringGrid1.Cells[5,i+1+total_i]:=inttostr(self.records_manager.records_custom[i].field_N_mines);
-    inc(total_i);
+    self.StringGrid1.Cells[0,self.StringGrid1.RowCount-1]:='Своя';
+    self.StringGrid1.Cells[1,self.StringGrid1.RowCount-1]:=self.records_manager.records_custom[i].nickname;
+    self.StringGrid1.Cells[2,self.StringGrid1.RowCount-1]:=inttostr(self.records_manager.records_custom[i].gametime_seconds);
+    self.StringGrid1.Cells[3,self.StringGrid1.RowCount-1]:=inttostr(self.records_manager.records_custom[i].field_height);
+    self.StringGrid1.Cells[4,self.StringGrid1.RowCount-1]:=inttostr(self.records_manager.records_custom[i].field_width);
+    self.StringGrid1.Cells[5,self.StringGrid1.RowCount-1]:=inttostr(self.records_manager.records_custom[i].field_N_mines);
   end;
 
   { растянем все столбцы под имеющийся в них текст максимальной длинны }
