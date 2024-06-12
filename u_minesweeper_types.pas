@@ -4,7 +4,8 @@
 }
 unit u_minesweeper_types;
 
-{$mode ObjFPC}{$H+}
+{$ifdef FPC}{$mode delphi}{$endif}
+{$H+}
 
 interface
 
@@ -12,6 +13,12 @@ uses
   Classes, SysUtils, Graphics ;
 
 type
+  { Тип перечисления для обозначения сложности игры }
+  T_Game_Difficulty = ( GD_EASY=1,
+                        GD_MEDIUM=2,
+                        GD_HARD=3,
+                        GD_CUSTOM=4 );
+
   // здесь хранится состояние игры, состония игры-взаимоисключающие, игра может
   // находится только в одном из указаных состояний
   TGame_State = ( GS_IDLE,
@@ -19,6 +26,9 @@ type
                   GS_WIN,
                   GS_LOSE
                 );
+
+  T_Mine_Sweeper_State_Change_Callback = procedure( new_state : TGame_State )of object;
+
   { Я предлагаю рассматривать игровое поле как комбинацию двух наложеных
    друг на друга матриц из ячеек. }
   // Нижняя матрица хранит значения открытых клеток где каждая ячеек может

@@ -4,7 +4,8 @@
 }
 unit u_asset_pack;
 
-{$mode ObjFPC}{$H+}
+{$ifdef FPC}{$mode delphi}{$endif}
+{$H+}
 
 interface
 
@@ -60,7 +61,7 @@ type
 
 implementation
 uses
-  Dialogs;
+  Dialogs,Forms;
 
 { T_Asset_Pack }
 constructor T_Asset_Pack.Create( par_asset_pack_dirname: String );
@@ -69,7 +70,7 @@ begin
    self.assets_containing_dirname:= 'asset_packs'; // папка содержащая субдиректории с ассетами
    self.asset_pack_dirname:= par_asset_pack_dirname; // имя субдиректории с загружаемым набором ассетов
    self.asset_pack_full_patch:=
-     ExtractFilePath(ParamStr(0))
+     ExtractFilePath(Application.ExeName)
      + self.assets_containing_dirname + PathDelim
      + self.asset_pack_dirname + PathDelim; // полный путь до папки с загружаемым набором ассетов
 

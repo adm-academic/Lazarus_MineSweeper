@@ -1,7 +1,7 @@
 object f_start_new: Tf_start_new
-  Left = 805
+  Left = 673
   Height = 260
-  Top = 210
+  Top = 308
   Width = 434
   Caption = 'Начать новую игру !'
   ClientHeight = 260

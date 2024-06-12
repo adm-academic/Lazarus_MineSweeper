@@ -1,9 +1,14 @@
 object f_records: Tf_records
-  Left = 447
-  Height = 240
-  Top = 137
-  Width = 320
+  Left = 453
+  Height = 459
+  Top = 238
+  Width = 751
+  HorzScrollBar.Visible = False
+  VertScrollBar.Visible = False
+  BorderStyle = bsDialog
   Caption = 'f_records'
+  ClientHeight = 459
+  ClientWidth = 751
   DesignTimePPI = 110
   Icon.Data = {
     3E42000000000100010040400000010020002842000016000000280000004000
@@ -538,6 +543,53 @@ object f_records: Tf_records
     0000000000000000000000000000000000000000000000000000000000000000
     0000
   }
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
   Position = poMainFormCenter
-  LCLVersion = '3.2.0.0'
+  LCLVersion = '3.4.0.0'
+  object StringGrid1: TStringGrid
+    Left = 0
+    Height = 459
+    Top = 0
+    Width = 751
+    Align = alClient
+    BorderStyle = bsNone
+    Color = clMenuBar
+    ColCount = 6
+    FixedCols = 0
+    Flat = True
+    RowCount = 1
+    ScrollBars = ssAutoVertical
+    TabOrder = 0
+    ColWidths = (
+      87
+      93
+      162
+      115
+      126
+      106
+    )
+    Cells = (
+      6
+      0
+      0
+      'Уровень'
+      1
+      0
+      'НикНэйм'
+      2
+      0
+      'Длительность (сек)'
+      3
+      0
+      'Высота поля'
+      4
+      0
+      'Ширина поля'
+      5
+      0
+      'Число мин'
+    )
+  end
 end

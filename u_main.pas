@@ -9,6 +9,7 @@ uses
   StdCtrls, Menus, Types, LCLType, Math
   , u_start_new
   , u_records
+  , u_records_manager
   , u_your_difficulty_level
   , u_settings
   , u_about_development_env
@@ -28,6 +29,7 @@ type
     lb_game_mines: TLabel;
     lb_game_flags: TLabel;
     lb_game_time: TLabel;
+    mi_clear_records: TMenuItem;
     mi_exit: TMenuItem;
     mi_records: TMenuItem;
     mi_start_game: TMenuItem;
@@ -40,9 +42,11 @@ type
     mm_main: TMainMenu;
     pn_statuses: TPanel;
     pn_game: TPanel;
+    Separator1: TMenuItem;
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure mi_clear_recordsClick(Sender: TObject);
     procedure mi_aboutClick(Sender: TObject);
     procedure mi_about_lazarusClick(Sender: TObject);
     procedure mi_exitClick(Sender: TObject);
@@ -54,7 +58,7 @@ type
 
   public
      mine_sweeper : T_Mine_Sweeper; // это объект инкапсулирующий всю игровую логику
-
+     procedure On_Mine_Sweeper_State_Change(  new_state : TGame_State  );
 
   end;
 
@@ -102,6 +106,7 @@ begin
                                       self.lb_game_flags,
                                       self.lb_game_time,
                                       self.lb_game_state, // передадим объект лэйбл игрвого состояния
+                                      @self.On_Mine_Sweeper_State_Change,
                                       'asset_pack_blue', // передадим имя эссет-пака
                                       self.get_form_current_tile_size, // передадим размер тайла
                                       f_start_new.diff_field_height, // передадим высоту поля в тайлах
@@ -125,6 +130,16 @@ begin
   self.dg_game.Top:=(self.pn_game.Height div 2)-(self.dg_game.Height div 2);
 
   self.Repaint;
+end;
+
+procedure Tf_main.mi_clear_recordsClick(Sender: TObject);
+var
+  Reply, BoxStyle: Integer;
+begin
+  BoxStyle := MB_ICONQUESTION + MB_YESNO;
+  Reply := Application.MessageBox('Вы действительно хотите очистить список рекордов?', 'Очищиние списка рекордов.', BoxStyle);
+  if Reply=IDYES then
+    f_records.records_manager.clear_all_records;
 end;
 
 procedure Tf_main.mi_aboutClick(Sender: TObject);
@@ -164,6 +179,7 @@ begin
   Result:=tile_size;
 end;
 
+
 procedure Tf_main.mi_start_gameClick(Sender: TObject);
 begin
   f_start_new.ShowModal;
@@ -180,6 +196,7 @@ begin
                                           self.lb_game_flags,
                                           self.lb_game_time,
                                           self.lb_game_state, // передадим объект лэйбл игрвого состояния
+                                          @self.On_Mine_Sweeper_State_Change,
                                           'asset_pack_blue', // передадим имя эссет-пака
                                           self.get_form_current_tile_size, // передадим размер тайла
                                           f_start_new.diff_field_height, // передадим высоту поля в тайлах
@@ -191,6 +208,50 @@ begin
       self.FormResize(self); //вызовем ОН-ресайз формы, там позиционируется игровой грид
     end;
 end;
+
+
+
+procedure Tf_main.On_Mine_Sweeper_State_Change(new_state: TGame_State);
+var
+  raw_str: string;
+  itog_str: string[50];
+  tmp_rec : T_Gamer_Record;
+begin
+
+  { если условие ниже истинно - это значит игрок выиграл и достиг рекорда }
+  if  (new_state=GS_WIN) and ( f_records.records_manager.this_value_is_a_record( f_start_new.diff_level_code,
+                                                                                 self.mine_sweeper.get_game_duration_in_seconds )
+                             ) then
+     begin
+       { Выведем input box для ввода имени для регистрации в таблице рекордов }
+       raw_str:= InputBox('Ввод имени для регистрации рекорда', 'Ваш результат является рекордом, введите никнейм', ' ');
+       { Длинна никнейма не более 50 символов }
+       itog_str:=Copy ( raw_str, 1 , Min(Length(raw_str),50) ) ;
+       { Теперь заполним переменную-запись с описанием рекорда, данные берём в разных местах,
+         но они между собой должны быть констистентны из-за структуры интерфейса базирующегося на формах }
+       tmp_rec.level:=f_start_new.diff_level_code;
+       tmp_rec.gametime_seconds:=self.mine_sweeper.get_game_duration_in_seconds;
+       tmp_rec.nickname:=itog_str;
+       tmp_rec.field_height:=f_start_new.diff_field_height;
+       tmp_rec.field_width:=f_start_new.diff_field_width;
+       tmp_rec.field_N_mines:=f_start_new.diff_field_N_mines;
+       { перечитаем все рекорды из файла, чтобы иметь их актуальное представление в ОЗУ }
+       f_records.records_manager.f_read_all_records;
+       { зарегистрируем рекорд в таблице рекордов }
+       f_records.records_manager.register_record(tmp_rec);
+       { запишем таблицу рекордов в файл }
+       f_records.records_manager.f_write_all_records;
+       { отобразим форму с таблицей рекордов }
+       f_records.ShowModal;
+     end;
+
+
+
+
+
+end;
+
+
 
 end.
 

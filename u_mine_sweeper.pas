@@ -1,6 +1,7 @@
 unit u_mine_sweeper;
 
-{$mode ObjFPC}{$H+}
+{$ifdef FPC}{$mode delphi}{$endif}
+{$H+}
 
 interface
 
@@ -62,6 +63,8 @@ type
          lb_mines_label: TLabel; // лэйбл для отображения количества мин
          lb_time_label: TLabel;  // лэйбл для отображения текущего времени игры
 
+       states_callback: T_Mine_Sweeper_State_Change_Callback; // мембер коллбэка для интерактивност и с объемлющим кодом
+
 
        asset_pack_name : string;         // имя загруженного ассет пака
        asset_pack_object : T_Asset_Pack; // объект загруженного ассет пака
@@ -110,6 +113,7 @@ type
                           game_flags_label: TLabel; // лэйбл для отображения количества флагов
                           game_time_label: TLabel;  // лэйбл для отображения текущего времени игры
                           game_state_label: TLabel; // игровой лэйбл состояний
+                          game_states_callback: T_Mine_Sweeper_State_Change_Callback; // коллбэк для связи объекта майсвипира с объемлющим кодом
                           name_of_asset_pack: string; // имя применяемого ассет-пака
                           init_tile_size: integer; // размер тайла из ассет-пака в пикселях (тайлы квадратные)
                           init_matrix_height: integer; // иницализирует высоту матрицы
@@ -598,10 +602,11 @@ begin
   self.resize_game_grid( tmp );
 
   { свяжем обработчики событий дро-грида }
-  self.dg_game_grid.OnDrawCell:=@self.drawgrid_OnDrawCell;
-  self.dg_game_grid.OnMouseDown:=@self.drawgrid_OnMouseDown;
-  self.dg_game_grid.OnMouseUp:=@self.drawgrid_OnMouseUp;
-  self.dg_game_grid.OnMouseMove:=@self.drawgrid_OnMouseMove;
+  //для FPC : self.dg_game_grid.OnDrawCell:=@self.drawgrid_OnDrawCell;
+  self.dg_game_grid.OnDrawCell:= self.drawgrid_OnDrawCell;
+  self.dg_game_grid.OnMouseDown:=self.drawgrid_OnMouseDown;
+  self.dg_game_grid.OnMouseUp:=  self.drawgrid_OnMouseUp;
+  self.dg_game_grid.OnMouseMove:=self.drawgrid_OnMouseMove;
 
   { перерисовка дро-грида после настройки всех его свойств }
   self.dg_game_grid.Repaint;
@@ -642,6 +647,7 @@ constructor T_Mine_Sweeper.Create(
                           game_flags_label: TLabel; // лэйбл для отображения количества флагов
                           game_time_label: TLabel;  // лэйбл для отображения текущего времени игры
                           game_state_label: TLabel; // игровой лэйбл состояний
+                          game_states_callback: T_Mine_Sweeper_State_Change_Callback;
                           name_of_asset_pack: string; // имя применяемого ассет-пака
                           init_tile_size: integer; // отображаемый размер тайла из ассет-пака в пикселях (тайлы квадратные)
                           init_matrix_height: integer; // иницализирует высоту матрицы
@@ -677,11 +683,14 @@ begin
   self.game_state:= GS_IDLE; // состояние игры перед стартом
   self.configure_grid; // настроим игровой грид в соответвии с сохранённными размерностями
 
+  self.states_callback:=game_states_callback;
+
   { настраиваем таймер }
   self.tm_game_timer:=TTimer.Create(self.f_game_form);
   self.tm_game_timer.Interval:= 1000 div 10 ; // 10 тиков таймера в секунду
-  self.tm_game_timer.OnTimer:=@self.timer_OnTimer;
-  self.tm_game_timer.OnStopTimer:=@self.timer_OnTimer;
+  // для FPC:  self.tm_game_timer.OnTimer:=@self.timer_OnTimer;
+  self.tm_game_timer.OnTimer:=     self.timer_OnTimer;
+  self.tm_game_timer.OnStopTimer:= self.timer_OnTimer;
 
 end;
 
@@ -728,7 +737,8 @@ begin
   self.tm_game_timer.OnTimer:=nil;
   self.tm_game_timer.OnStopTimer:=nil;
   FreeAndNil(self.tm_game_timer);
-  //
+
+  self.states_callback:=nil;
 
   inherited Destroy; // вызовем родительский деструктор
 end;
@@ -965,11 +975,13 @@ end;
 procedure T_Mine_Sweeper.process_user_win;
 begin
    ShowMessage('Вы победили в этом раунде "Сапёра" ! ');
+   self.states_callback(self.game_state);
 end;
 
 procedure T_Mine_Sweeper.process_user_lose;
 begin
   ShowMessage('Вы проиграли этот раунд "Сапёра" ! ');
+  self.states_callback(self.game_state);
 end;
 
 

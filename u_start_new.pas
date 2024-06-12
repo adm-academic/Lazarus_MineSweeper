@@ -6,15 +6,11 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls
-  ,u_your_difficulty_level;
+  ,u_your_difficulty_level, u_minesweeper_types;
 
 type
 
-  { Тип перечисления для обозначения сложности игры }
-  T_Game_Difficulty = ( GD_EASY,
-                        GD_MEDIUM,
-                        GD_HARD,
-                        GD_CUSTOM );
+
   { Tf_start_new }
   Tf_start_new = class(TForm)
     b_set_configuration: TButton;

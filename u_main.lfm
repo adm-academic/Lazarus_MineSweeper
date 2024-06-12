@@ -1,7 +1,7 @@
 object f_main: Tf_main
-  Left = 403
+  Left = 373
   Height = 523
-  Top = 142
+  Top = 127
   Width = 717
   Caption = 'f_main'
   ClientHeight = 523
@@ -633,6 +633,13 @@ object f_main: Tf_main
       object mi_records: TMenuItem
         Caption = 'Рекорды ...'
         OnClick = mi_recordsClick
+      end
+      object mi_clear_records: TMenuItem
+        Caption = 'Очистить рекорды...'
+        OnClick = mi_clear_recordsClick
+      end
+      object Separator1: TMenuItem
+        Caption = '-'
       end
       object mi_exit: TMenuItem
         Caption = 'Выход'

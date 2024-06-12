@@ -8,7 +8,7 @@ uses
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
   Forms, u_main, u_start_new, u_records, u_your_difficulty_level, u_settings, 
-u_about_development_env, u_about_program
+u_about_development_env, u_about_program, u_records_manager
   { you can add units after this };
 
 {$R *.res}
