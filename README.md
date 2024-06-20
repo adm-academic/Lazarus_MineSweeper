@@ -23,3 +23,7 @@ _______________________________________________________________________________
 Игрок выиграл! Он открыл все ячейки кроме мин, и получил победу!
 
 ![alt text](https://github.com/adm-academic/Lazarus_MineSweeper/blob/main/screenshots/win.png?raw=true)
+
+После победы никнейм игрока внесён в локальный список рекордов.
+
+![alt text](https://github.com/adm-academic/Lazarus_MineSweeper/blob/main/screenshots/records.png?raw=true)
