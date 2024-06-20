@@ -1,15 +1,15 @@
 object f_records: Tf_records
-  Left = 453
-  Height = 459
-  Top = 238
-  Width = 751
+  Left = 451
+  Height = 501
+  Top = 158
+  Width = 819
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   BorderStyle = bsDialog
   Caption = 'f_records'
-  ClientHeight = 459
-  ClientWidth = 751
-  DesignTimePPI = 110
+  ClientHeight = 501
+  ClientWidth = 819
+  DesignTimePPI = 120
   Icon.Data = {
     3E42000000000100010040400000010020002842000016000000280000004000
     0000800000000100200000000000004000006400000064000000000000000000
@@ -550,9 +550,9 @@ object f_records: Tf_records
   LCLVersion = '3.4.0.0'
   object StringGrid1: TStringGrid
     Left = 0
-    Height = 459
+    Height = 501
     Top = 0
-    Width = 751
+    Width = 819
     Align = alClient
     BorderStyle = bsNone
     Color = clMenuBar
@@ -563,12 +563,12 @@ object f_records: Tf_records
     ScrollBars = ssAutoVertical
     TabOrder = 0
     ColWidths = (
-      87
-      93
-      162
-      115
-      126
-      106
+      95
+      101
+      177
+      125
+      137
+      116
     )
     Cells = (
       6
