@@ -1,15 +1,17 @@
 unit u_records_manager;
 
-{$ifdef FPC}{$mode delphi}{$endif}
+{$ifdef FPC}
+
+{$mode delphi}
 {$H+}
+
+{$endif}
 
 interface
 
 uses
   Classes, SysUtils,
-  {$ifdef FPC}
-  generics.Collections,Generics.Defaults,
-  {$endif}
+  generics.Collections,Generics.Defaults, // подключим делфовые дженерики
   u_minesweeper_types;
 
 const

@@ -3,9 +3,12 @@
 гибкости итоговой программы.
 }
 unit u_asset_pack;
+{$ifdef FPC}
 
-{$ifdef FPC}{$mode delphi}{$endif}
+{$mode delphi}
 {$H+}
+
+{$endif}
 
 interface
 

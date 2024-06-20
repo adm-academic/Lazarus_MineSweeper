@@ -4,8 +4,12 @@
 }
 unit u_minesweeper_types;
 
-{$ifdef FPC}{$mode delphi}{$endif}
+{$ifdef FPC}
+
+{$mode delphi}
 {$H+}
+
+{$endif}
 
 interface
 

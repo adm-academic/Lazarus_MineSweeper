@@ -1,11 +1,17 @@
 unit u_settings_manager;
 
-{$mode ObjFPC}{$H+}
+{$ifdef FPC}
+
+{$mode delphi}
+{$H+}
+
+{$endif}
 
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils,
+  u_minesweeper_types;
 
 implementation
 

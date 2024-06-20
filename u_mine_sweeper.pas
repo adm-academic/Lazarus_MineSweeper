@@ -1,7 +1,12 @@
 unit u_mine_sweeper;
 
-{$ifdef FPC}{$mode delphi}{$endif}
+{$ifdef FPC}
+
+{$mode delphi}
 {$H+}
+
+{$endif}
+
 
 interface
 
