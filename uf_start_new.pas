@@ -1,4 +1,4 @@
-unit u_start_new;
+unit uf_start_new;
 
 {$mode ObjFPC}{$H+}
 
@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls
-  ,u_your_difficulty_level, u_minesweeper_types;
+  ,uf_your_difficulty_level, u_minesweeper_types;
 
 type
 

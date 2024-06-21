@@ -1,4 +1,4 @@
-unit u_about_program;
+unit uf_about_program;
 
 {$mode ObjFPC}{$H+}
 

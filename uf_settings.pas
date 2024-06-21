@@ -1,4 +1,4 @@
-unit u_settings;
+unit uf_settings;
 
 {$mode ObjFPC}{$H+}
 

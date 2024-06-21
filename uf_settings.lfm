@@ -1,11 +1,9 @@
-object f_your_difficulty_level: Tf_your_difficulty_level
-  Left = 653
-  Height = 223
-  Top = 305
-  Width = 258
-  Caption = 'f_your_difficulty_level'
-  ClientHeight = 223
-  ClientWidth = 258
+object f_settings: Tf_settings
+  Left = 460
+  Height = 240
+  Top = 138
+  Width = 320
+  Caption = 'Настройки игры'
   DesignTimePPI = 110
   Icon.Data = {
     3E42000000000100010040400000010020002842000016000000280000004000
@@ -542,64 +540,4 @@ object f_your_difficulty_level: Tf_your_difficulty_level
   }
   Position = poMainFormCenter
   LCLVersion = '3.4.0.0'
-  object Label1: TLabel
-    Left = 16
-    Height = 23
-    Top = 16
-    Width = 65
-    Caption = 'Ширина'
-  end
-  object Label2: TLabel
-    Left = 16
-    Height = 23
-    Top = 64
-    Width = 56
-    Caption = 'Высота'
-  end
-  object Label3: TLabel
-    Left = 16
-    Height = 23
-    Top = 112
-    Width = 86
-    Caption = 'Число Мин'
-  end
-  object se_rowcount: TSpinEdit
-    Left = 136
-    Height = 33
-    Top = 64
-    Width = 97
-    MaxValue = 50
-    MinValue = 1
-    TabOrder = 1
-    Value = 14
-  end
-  object se_N_mines: TSpinEdit
-    Left = 136
-    Height = 33
-    Top = 112
-    Width = 97
-    MaxValue = 2400
-    MinValue = 1
-    TabOrder = 2
-    Value = 15
-  end
-  object se_colcount: TSpinEdit
-    Left = 136
-    Height = 33
-    Top = 16
-    Width = 97
-    MaxValue = 50
-    MinValue = 1
-    TabOrder = 0
-    Value = 14
-  end
-  object Button1: TButton
-    Left = 64
-    Height = 45
-    Top = 160
-    Width = 142
-    Caption = 'Подтвердить'
-    TabOrder = 3
-    OnClick = Button1Click
-  end
 end

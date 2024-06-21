@@ -1,4 +1,4 @@
-unit u_main;
+unit uf_main;
 
 {$mode objfpc}{$H+}
 
@@ -7,13 +7,13 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Grids, ExtCtrls,
   StdCtrls, Menus, Types, LCLType, Math
-  , u_start_new
-  , u_records
+  , uf_start_new
+  , uf_records
   , u_records_manager
-  , u_your_difficulty_level
-  , u_settings
-  , u_about_development_env
-  , u_about_program
+  , uf_your_difficulty_level
+  , uf_settings
+  , uf_about_development_env
+  , uf_about_program
   , u_minesweeper_types
   , u_mine_sweeper
   , u_asset_pack

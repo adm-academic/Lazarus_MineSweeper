@@ -36,7 +36,7 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="u_main.pas"/>
+        <Filename Value="uf_main.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="f_main"/>
         <HasResources Value="True"/>
@@ -67,42 +67,42 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="u_start_new.pas"/>
+        <Filename Value="uf_start_new.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="f_start_new"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit>
       <Unit>
-        <Filename Value="u_records.pas"/>
+        <Filename Value="uf_records.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="f_records"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit>
       <Unit>
-        <Filename Value="u_your_difficulty_level.pas"/>
+        <Filename Value="uf_your_difficulty_level.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="f_your_difficulty_level"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit>
       <Unit>
-        <Filename Value="u_settings.pas"/>
+        <Filename Value="uf_settings.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="f_settings"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit>
       <Unit>
-        <Filename Value="u_about_development_env.pas"/>
+        <Filename Value="uf_about_development_env.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="f_about_development_env"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit>
       <Unit>
-        <Filename Value="u_about_program.pas"/>
+        <Filename Value="uf_about_program.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="f_about_program"/>
         <HasResources Value="True"/>

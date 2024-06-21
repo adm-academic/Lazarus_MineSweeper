@@ -1,11 +1,11 @@
-object f_main: Tf_main
-  Left = 373
-  Height = 523
-  Top = 127
-  Width = 717
-  Caption = 'f_main'
-  ClientHeight = 523
-  ClientWidth = 717
+object f_your_difficulty_level: Tf_your_difficulty_level
+  Left = 485
+  Height = 229
+  Top = 299
+  Width = 426
+  Caption = 'Свой уровень сложности'
+  ClientHeight = 229
+  ClientWidth = 426
   DesignTimePPI = 110
   Icon.Data = {
     3E42000000000100010040400000010020002842000016000000280000004000
@@ -540,129 +540,66 @@ object f_main: Tf_main
     0000000000000000000000000000000000000000000000000000000000000000
     0000
   }
-  Menu = mm_main
-  OnCloseQuery = FormCloseQuery
-  OnCreate = FormCreate
-  OnResize = FormResize
-  Position = poDesktopCenter
+  Position = poMainFormCenter
   LCLVersion = '3.4.0.0'
-  object pn_game: TPanel
-    Left = 20
-    Height = 442
-    Top = 20
-    Width = 677
-    Align = alClient
-    BorderSpacing.Left = 20
-    BorderSpacing.Top = 20
-    BorderSpacing.Right = 20
-    BorderSpacing.Bottom = 20
-    BevelOuter = bvNone
-    ClientHeight = 442
-    ClientWidth = 677
-    TabOrder = 0
-    object dg_game: TDrawGrid
-      Left = 144
-      Height = 402
-      Top = 8
-      Width = 402
-      ExtendedSelect = False
-      ScrollBars = ssNone
-      TabOrder = 0
-    end
+  object Label1: TLabel
+    Left = 40
+    Height = 23
+    Top = 16
+    Width = 65
+    Caption = 'Ширина'
   end
-  object pn_statuses: TPanel
-    Left = 0
-    Height = 41
-    Top = 482
-    Width = 717
-    Align = alBottom
-    BevelOuter = bvNone
-    ClientHeight = 41
-    ClientWidth = 717
+  object Label2: TLabel
+    Left = 40
+    Height = 23
+    Top = 64
+    Width = 56
+    Caption = 'Высота'
+  end
+  object Label3: TLabel
+    Left = 40
+    Height = 23
+    Top = 112
+    Width = 86
+    Caption = 'Число Мин'
+  end
+  object se_rowcount: TSpinEdit
+    Left = 240
+    Height = 33
+    Top = 64
+    Width = 121
+    MaxValue = 50
+    MinValue = 1
     TabOrder = 1
-    object lb_game_state: TLabel
-      Left = 552
-      Height = 41
-      Top = 0
-      Width = 165
-      Align = alRight
-      Alignment = taCenter
-      AutoSize = False
-      Layout = tlCenter
-    end
-    object lb_game_mines: TLabel
-      Left = 162
-      Height = 41
-      Top = 0
-      Width = 130
-      Align = alRight
-      Alignment = taCenter
-      AutoSize = False
-      Layout = tlCenter
-    end
-    object lb_game_flags: TLabel
-      Left = 292
-      Height = 41
-      Top = 0
-      Width = 130
-      Align = alRight
-      Alignment = taCenter
-      AutoSize = False
-      Layout = tlCenter
-    end
-    object lb_game_time: TLabel
-      Left = 422
-      Height = 41
-      Top = 0
-      Width = 130
-      Align = alRight
-      Alignment = taCenter
-      AutoSize = False
-      Layout = tlCenter
-    end
+    Value = 14
   end
-  object mm_main: TMainMenu
-    Left = 48
-    Top = 288
-    object mi_m_game: TMenuItem
-      Caption = 'Игра'
-      object mi_start_game: TMenuItem
-        Caption = 'Начать игру ...'
-        OnClick = mi_start_gameClick
-      end
-      object mi_records: TMenuItem
-        Caption = 'Рекорды ...'
-        OnClick = mi_recordsClick
-      end
-      object mi_clear_records: TMenuItem
-        Caption = 'Очистить рекорды...'
-        OnClick = mi_clear_recordsClick
-      end
-      object Separator1: TMenuItem
-        Caption = '-'
-      end
-      object mi_exit: TMenuItem
-        Caption = 'Выход'
-        OnClick = mi_exitClick
-      end
-    end
-    object mi_m_settings: TMenuItem
-      Caption = 'Настройки'
-      object mi_settings: TMenuItem
-        Caption = 'Настройки ...'
-        OnClick = mi_settingsClick
-      end
-    end
-    object mi_m_help: TMenuItem
-      Caption = 'Справка'
-      object mi_about_lazarus: TMenuItem
-        Caption = 'О Lazarus ...'
-        OnClick = mi_about_lazarusClick
-      end
-      object mi_about: TMenuItem
-        Caption = 'О программе ...'
-        OnClick = mi_aboutClick
-      end
-    end
+  object se_N_mines: TSpinEdit
+    Left = 240
+    Height = 33
+    Top = 112
+    Width = 121
+    MaxValue = 2400
+    MinValue = 1
+    TabOrder = 2
+    Value = 15
+  end
+  object se_colcount: TSpinEdit
+    Left = 240
+    Height = 33
+    Top = 16
+    Width = 121
+    MaxValue = 50
+    MinValue = 1
+    TabOrder = 0
+    Value = 14
+  end
+  object Button1: TButton
+    Left = 96
+    Height = 45
+    Top = 160
+    Width = 224
+    Caption = 'Подтвердить'
+    TabOrder = 3
+    OnClick = Button1Click
   end
 end

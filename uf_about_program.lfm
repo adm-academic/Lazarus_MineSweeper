@@ -541,7 +541,7 @@ object f_about_program: Tf_about_program
     0000
   }
   Position = poMainFormCenter
-  LCLVersion = '3.2.0.0'
+  LCLVersion = '3.4.0.0'
   object Button1: TButton
     Left = 248
     Height = 35

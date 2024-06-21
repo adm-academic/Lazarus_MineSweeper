@@ -1,9 +1,11 @@
-object f_settings: Tf_settings
-  Left = 460
-  Height = 240
-  Top = 138
-  Width = 320
-  Caption = 'f_settings'
+object f_main: Tf_main
+  Left = 373
+  Height = 523
+  Top = 127
+  Width = 717
+  Caption = 'Логическая игра "Сапёр".'
+  ClientHeight = 523
+  ClientWidth = 717
   DesignTimePPI = 110
   Icon.Data = {
     3E42000000000100010040400000010020002842000016000000280000004000
@@ -538,6 +540,129 @@ object f_settings: Tf_settings
     0000000000000000000000000000000000000000000000000000000000000000
     0000
   }
-  Position = poMainFormCenter
-  LCLVersion = '3.2.0.0'
+  Menu = mm_main
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  OnResize = FormResize
+  Position = poDesktopCenter
+  LCLVersion = '3.4.0.0'
+  object pn_game: TPanel
+    Left = 20
+    Height = 442
+    Top = 20
+    Width = 677
+    Align = alClient
+    BorderSpacing.Left = 20
+    BorderSpacing.Top = 20
+    BorderSpacing.Right = 20
+    BorderSpacing.Bottom = 20
+    BevelOuter = bvNone
+    ClientHeight = 442
+    ClientWidth = 677
+    TabOrder = 0
+    object dg_game: TDrawGrid
+      Left = 144
+      Height = 402
+      Top = 8
+      Width = 402
+      ExtendedSelect = False
+      ScrollBars = ssNone
+      TabOrder = 0
+    end
+  end
+  object pn_statuses: TPanel
+    Left = 0
+    Height = 41
+    Top = 482
+    Width = 717
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 41
+    ClientWidth = 717
+    TabOrder = 1
+    object lb_game_state: TLabel
+      Left = 552
+      Height = 41
+      Top = 0
+      Width = 165
+      Align = alRight
+      Alignment = taCenter
+      AutoSize = False
+      Layout = tlCenter
+    end
+    object lb_game_mines: TLabel
+      Left = 162
+      Height = 41
+      Top = 0
+      Width = 130
+      Align = alRight
+      Alignment = taCenter
+      AutoSize = False
+      Layout = tlCenter
+    end
+    object lb_game_flags: TLabel
+      Left = 292
+      Height = 41
+      Top = 0
+      Width = 130
+      Align = alRight
+      Alignment = taCenter
+      AutoSize = False
+      Layout = tlCenter
+    end
+    object lb_game_time: TLabel
+      Left = 422
+      Height = 41
+      Top = 0
+      Width = 130
+      Align = alRight
+      Alignment = taCenter
+      AutoSize = False
+      Layout = tlCenter
+    end
+  end
+  object mm_main: TMainMenu
+    Left = 48
+    Top = 288
+    object mi_m_game: TMenuItem
+      Caption = 'Игра'
+      object mi_start_game: TMenuItem
+        Caption = 'Начать игру ...'
+        OnClick = mi_start_gameClick
+      end
+      object mi_records: TMenuItem
+        Caption = 'Рекорды ...'
+        OnClick = mi_recordsClick
+      end
+      object mi_clear_records: TMenuItem
+        Caption = 'Очистить рекорды...'
+        OnClick = mi_clear_recordsClick
+      end
+      object Separator1: TMenuItem
+        Caption = '-'
+      end
+      object mi_exit: TMenuItem
+        Caption = 'Выход'
+        OnClick = mi_exitClick
+      end
+    end
+    object mi_m_settings: TMenuItem
+      Caption = 'Настройки'
+      object mi_settings: TMenuItem
+        Caption = 'Настройки ...'
+        OnClick = mi_settingsClick
+      end
+    end
+    object mi_m_help: TMenuItem
+      Caption = 'Справка'
+      object mi_about_lazarus: TMenuItem
+        Caption = 'О Lazarus ...'
+        OnClick = mi_about_lazarusClick
+      end
+      object mi_about: TMenuItem
+        Caption = 'О программе ...'
+        OnClick = mi_aboutClick
+      end
+    end
+  end
 end
