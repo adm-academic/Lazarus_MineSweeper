@@ -57,8 +57,8 @@ type
     function get_form_current_tile_size : integer;
 
   public
-     mine_sweeper : T_Mine_Sweeper; // это объект инкапсулирующий всю игровую логику
-     procedure On_Mine_Sweeper_State_Change(  new_state : TGame_State  );
+     mine_sweeper : T_Mine_Sweeper; // это объект инкапсулирующий всю игровую логику и отрисовку
+     procedure On_Mine_Sweeper_State_Change(  new_state : TGame_State  ); // коллбэк, вызываемый при проигрыше-выигрыше
 
   end;
 

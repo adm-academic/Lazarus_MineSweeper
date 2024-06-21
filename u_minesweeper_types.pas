@@ -23,7 +23,7 @@ type
                         GD_HARD=3,
                         GD_CUSTOM=4 );
 
-  // здесь хранится состояние игры, состония игры-взаимоисключающие, игра может
+  // здесь хранится состояние игры, состояния игры - взаимоисключающие, игра может
   // находится только в одном из указаных состояний
   TGame_State = ( GS_IDLE,
                   GS_PLAY,
@@ -31,7 +31,7 @@ type
                   GS_LOSE
                 );
 
-  T_Mine_Sweeper_State_Change_Callback = procedure( new_state : TGame_State )of object;
+  T_Mine_Sweeper_State_Change_Callback = procedure( new_state : TGame_State )of object; // тип коллбэка
 
   { Я предлагаю рассматривать игровое поле как комбинацию двух наложеных
    друг на друга матриц из ячеек. }
@@ -82,7 +82,14 @@ type
                       MKA_BOTH  = 3
   );
 
+  {$IfDef FPC}
   PPortableNetworkGraphic = ^TPortableNetworkGraphic;// указатель на объект PNG-картинки
+  {$Else}
+  // ...
+  {$EndIf}
+
+
+
 
 implementation
 
