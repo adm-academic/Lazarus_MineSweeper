@@ -1,7 +1,7 @@
 object f_main: Tf_main
-  Left = 497
+  Left = 526
   Height = 523
-  Top = 98
+  Top = 116
   Width = 717
   Caption = 'Логическая игра "Сапёр".'
   ClientHeight = 523
@@ -543,6 +543,7 @@ object f_main: Tf_main
   Menu = mm_main
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnResize = FormResize
   Position = poDesktopCenter
   LCLVersion = '3.4.0.0'
@@ -560,6 +561,7 @@ object f_main: Tf_main
     ClientHeight = 442
     ClientWidth = 677
     TabOrder = 0
+    OnClick = pn_gameClick
     object dg_game: TDrawGrid
       Left = 144
       Height = 402

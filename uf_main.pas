@@ -45,6 +45,7 @@ type
     Separator1: TMenuItem;
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure mi_clear_recordsClick(Sender: TObject);
     procedure mi_aboutClick(Sender: TObject);
@@ -53,6 +54,7 @@ type
     procedure mi_recordsClick(Sender: TObject);
     procedure mi_settingsClick(Sender: TObject);
     procedure mi_start_gameClick(Sender: TObject);
+    procedure pn_gameClick(Sender: TObject);
   private
     function get_form_current_tile_size : integer;
 
@@ -86,6 +88,9 @@ end;
 
 procedure Tf_main.FormCreate(Sender: TObject);
 begin
+  { для начала создадим и проинициализируем менеджер настроек }
+  settings_manager:=T_Settings_Manager.Create;
+
   { все неглавные формы я создаю в обработчике FormCreate, таким образом в
     большинстве обработчиков главной формы Tf_main эти формы будут доступны уже
     проинициализированными. Самы переменные этих форм, в с соответвии с соглашением
@@ -116,6 +121,15 @@ begin
                                        // выбрал пользователь в окне старта игры f_start_new
   self.mine_sweeper.start_game; // и сразу же стартуем игру с новыми настройками
   self.FormResize(self); //вызовем ОН-ресайз формы, там позиционируется игровой грид
+end;
+
+procedure Tf_main.FormDestroy(Sender: TObject);
+begin
+
+  FreeAndNil( self.mine_sweeper );  // в конце работы программы - уничтожим объект игры
+
+  FreeAndNil( settings_manager ); // и уничтожим менеджер настроек
+
 end;
 
 procedure Tf_main.FormResize(Sender: TObject);
@@ -207,6 +221,11 @@ begin
       self.mine_sweeper.start_game; // и сразу же стартуем игру с новыми настройками
       self.FormResize(self); //вызовем ОН-ресайз формы, там позиционируется игровой грид
     end;
+end;
+
+procedure Tf_main.pn_gameClick(Sender: TObject);
+begin
+
 end;
 
 

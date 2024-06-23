@@ -1,11 +1,11 @@
 object f_settings: Tf_settings
-  Left = 522
-  Height = 448
+  Left = 500
+  Height = 595
   Top = 126
-  Width = 435
+  Width = 428
   Caption = 'Настройки игры'
-  ClientHeight = 448
-  ClientWidth = 435
+  ClientHeight = 595
+  ClientWidth = 428
   DesignTimePPI = 110
   Icon.Data = {
     3E42000000000100010040400000010020002842000016000000280000004000
@@ -622,5 +622,23 @@ object f_settings: Tf_settings
     Top = 296
     Width = 220
     Caption = 'Громкость фоновой музыки'
+  end
+  object lb_test: TLabel
+    Left = 24
+    Height = 135
+    Top = 448
+    Width = 392
+    AutoSize = False
+    Caption = '......................'
+    WordWrap = True
+  end
+  object bt_test: TButton
+    Left = 32
+    Height = 29
+    Top = 403
+    Width = 86
+    Caption = 'bt_test'
+    TabOrder = 6
+    OnClick = bt_testClick
   end
 end
