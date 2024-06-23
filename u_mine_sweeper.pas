@@ -778,7 +778,7 @@ procedure T_Mine_Sweeper.drawgrid_OnDrawCell(Sender: TObject; aCol,
 var
    cy, cx : integer;
    i: integer;
-   paint_tile : TPortableNetworkGraphic; // указатель на картинку, для простоты и быстроты
+   paint_tile : TBitmap; // указатель на картинку, для простоты и быстроты
 begin
   if (self.game_state<>GS_PLAY) and  // в неигровом режиме отрисовывается специальный тайл - 'default'
      (self.game_state<>GS_WIN)  and

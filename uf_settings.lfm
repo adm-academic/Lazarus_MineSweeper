@@ -1,7 +1,7 @@
 object f_settings: Tf_settings
-  Left = 466
+  Left = 522
   Height = 448
-  Top = 128
+  Top = 126
   Width = 435
   Caption = 'Настройки игры'
   ClientHeight = 448
