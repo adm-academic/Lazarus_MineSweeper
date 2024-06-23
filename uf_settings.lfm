@@ -1,9 +1,11 @@
 object f_settings: Tf_settings
-  Left = 460
-  Height = 240
-  Top = 138
-  Width = 320
+  Left = 466
+  Height = 448
+  Top = 128
+  Width = 435
   Caption = 'Настройки игры'
+  ClientHeight = 448
+  ClientWidth = 435
   DesignTimePPI = 110
   Icon.Data = {
     3E42000000000100010040400000010020002842000016000000280000004000
@@ -538,6 +540,87 @@ object f_settings: Tf_settings
     0000000000000000000000000000000000000000000000000000000000000000
     0000
   }
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
   Position = poMainFormCenter
   LCLVersion = '3.4.0.0'
+  object cb_select_asset_pack: TComboBox
+    Left = 24
+    Height = 35
+    Top = 40
+    Width = 384
+    ItemHeight = 0
+    Style = csDropDownList
+    TabOrder = 0
+    OnChange = cb_select_asset_packChange
+  end
+  object lb_select_asset_pack: TLabel
+    Left = 24
+    Height = 23
+    Top = 8
+    Width = 126
+    Caption = 'Набор ресурсов'
+  end
+  object bt_save_all: TButton
+    Left = 136
+    Height = 40
+    Top = 392
+    Width = 168
+    Caption = 'Сохранить Всё'
+    TabOrder = 3
+    OnClick = bt_save_allClick
+  end
+  object cb_play_sounds: TCheckBox
+    Left = 24
+    Height = 25
+    Top = 96
+    Width = 247
+    Caption = 'Проигрывать игровые звуки'
+    TabOrder = 1
+    OnChange = cb_play_soundsChange
+  end
+  object lb_sounds_volume: TLabel
+    Left = 24
+    Height = 23
+    Top = 192
+    Width = 139
+    Caption = 'Громкость звуков'
+  end
+  object tb_sounds_volume: TTrackBar
+    Left = 24
+    Height = 44
+    Top = 224
+    Width = 384
+    Max = 100
+    OnChange = tb_sounds_volumeChange
+    Position = 50
+    TabOrder = 2
+  end
+  object cb_play_music: TCheckBox
+    Left = 24
+    Height = 25
+    Top = 144
+    Width = 265
+    Caption = 'Проигрывать фоновую музыку'
+    TabOrder = 4
+    OnChange = cb_play_musicChange
+  end
+  object tb_music_volume: TTrackBar
+    Left = 24
+    Height = 44
+    Top = 328
+    Width = 384
+    Max = 100
+    OnChange = tb_music_volumeChange
+    Position = 50
+    TabOrder = 5
+  end
+  object lb_music_volume: TLabel
+    Left = 24
+    Height = 23
+    Top = 296
+    Width = 220
+    Caption = 'Громкость фоновой музыки'
+  end
 end
