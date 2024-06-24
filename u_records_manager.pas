@@ -1,4 +1,4 @@
-unit u_records_manager;
+﻿unit u_records_manager;
 
 {$ifdef FPC}
 
@@ -103,7 +103,14 @@ type
 
 
 implementation
-uses Dialogs, Forms;
+uses
+{$ifdef FPC}
+  Dialogs,Forms
+  , u_settings_manager;
+{$else}
+  FMX.Dialogs,FMX.Forms
+  , u_settings_manager;
+{$endif}
 
 { T_Records_Manager }
 
@@ -123,7 +130,7 @@ begin
     GD_CUSTOM: records_collection:=self.gamers_records_custom;
   end;
 
-  file_path:=ExtractFilePath(Application.ExeName); //  получим путь к папке с программой
+  file_path:=settings_manager.get_root_application_dir; //  получим путь к папке с программой
   file_name:=file_path + PathDelim + records_filename; // определим имя файла с рекордами
   AssignFile( rec_file, file_name  ); // выполним связывание имени файла с переменной
   Reset(rec_file);  // откроем файл для записи, это нужно чтобы не следить за пустым файлом
@@ -160,7 +167,7 @@ begin
     GD_CUSTOM: records_collection:=self.gamers_records_custom;
   end;
 
-  file_path:=ExtractFilePath(Application.ExeName);   //  получим путь к папке с программой
+  file_path:=settings_manager.get_root_application_dir;   //  получим путь к папке с программой
   file_name:=file_path + PathDelim + records_filename; // определим имя файла с рекордами
   AssignFile( rec_file, file_name  ); // выполним связывание имени файла с переменной
   FileMode:=2;
@@ -184,7 +191,7 @@ var
   file_path, file_name : string;
 begin
   { создадим пустой файл если его ещё нет }
-  file_path:=ExtractFilePath(Application.ExeName);   //  получим путь к папке с программой
+  file_path:=settings_manager.get_root_application_dir;   //  получим путь к папке с программой
   file_name:=file_path + PathDelim + records_filename; // определим имя файла с рекордами
   if (not FileExists(file_name)) then
      begin
@@ -206,7 +213,7 @@ var
   file_path, file_name : string;
 begin
   { сбросим файл в ноль перед записью }
-  file_path:=ExtractFilePath(Application.ExeName);   //  получим путь к папке с программой
+  file_path:=settings_manager.get_root_application_dir;   //  получим путь к папке с программой
   file_name:=file_path + PathDelim + records_filename; // определим имя файла с рекордами
   AssignFile( rec_file, file_name  ); // выполним связывание имени файла с переменной
   Rewrite(rec_file);
