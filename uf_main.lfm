@@ -1,7 +1,7 @@
 object f_main: Tf_main
-  Left = 526
+  Left = 396
   Height = 523
-  Top = 116
+  Top = 133
   Width = 717
   Caption = 'Логическая игра "Сапёр".'
   ClientHeight = 523
