@@ -1,4 +1,4 @@
-unit u_settings_manager;
+﻿unit u_settings_manager;
 
 {$ifdef FPC}
 
@@ -44,11 +44,6 @@ type
     root_application_dir : string;
 
     function get_config_filename : string;
-  protected
-  public
-    constructor Create; // конструктор
-    destructor Destroy; override; // деструктор
-
     { ищет и возвращает главную директорию приложения по файлу конфигурации settings.ini
       главная директория определяется наличием этого файла и строки в нём:
            name=Lazarus_MineSweeper.
@@ -58,6 +53,13 @@ type
       в теневой папке компиляции }
     function  find_and_get_main_application_dir: string;
     { изменяет главную директорию на найденную предыдущей функцией }
+  protected
+  public
+    function get_root_application_dir : string; // возвращает текущий коренной каталог приложения
+
+    constructor Create; // конструктор
+    destructor Destroy; override; // деструктор
+
     procedure chdir_to_root_application_dir;
 
     function  get_asset_pack_name:String; // геттер для текущего имени ассет пака
@@ -86,7 +88,12 @@ var
 
 implementation
 uses
-  Dialogs,Forms;
+
+{$ifdef FPC}
+   Dialogs,Forms;
+{$else}
+   FMX.Dialogs,FMX.Forms;
+{$endif}
 
 { T_Settings_Manager }
 
@@ -94,7 +101,9 @@ constructor T_Settings_Manager.Create;
 begin
   inherited Create;
   self.asset_packs_list:=nil;
+
   self.chdir_to_root_application_dir;
+
 end;
 
 destructor T_Settings_Manager.Destroy;
@@ -103,11 +112,9 @@ begin
   inherited Destroy;
 end;
 
-{ этот метод должен изменится, так как поиск текущего пути к файлам
- приложения мы будем производить в другом методе }
-function T_Settings_Manager.get_config_filename: string;
+function  T_Settings_Manager.get_config_filename: string;
 begin
-  Result := ExtractFilePath(Application.ExeName) + PathDelim + filename;
+  Result := self.root_application_dir + PathDelim + filename;
 end;
 
 { ищет главную директорию приложения, в которой расположены все его файлы,
@@ -184,19 +191,23 @@ begin
   if ( find_in_it(start_dir_str) ) then
     begin
       Result:=ExpandFileName( start_dir_str );
-      exit;
     end
   else if ( find_in_it(start_dir_str+PathDelim+'..' ) ) then
     begin
       Result:=ExpandFileName( start_dir_str+PathDelim+'..' );
-      exit;
     end
   else if ( find_in_it(start_dir_str+PathDelim+'..'+PathDelim+'..' ) ) then
     begin
       Result:=ExpandFileName( start_dir_str+PathDelim+'..'+PathDelim+'..' );
-      exit;
     end;
 
+  Result:=Result + PathDelim;
+
+end;
+
+function T_Settings_Manager.get_root_application_dir: string;
+begin
+  Result:=self.root_application_dir;
 end;
 
 procedure T_Settings_Manager.chdir_to_root_application_dir;
@@ -207,7 +218,7 @@ begin
   if (tmp_s_path='') then
     raise E_Application_Files_Not_Found.Create('При запуске программы не найден каталог'+
                ' с необходимыми файлами программы');
-  self.root_application_dir:=tmp_s_path;
+  self.root_application_dir:=tmp_s_path + PathDelim;
   ChDir(self.root_application_dir);
 end;
 
@@ -248,7 +259,8 @@ begin
 
   self.asset_packs_list:=TStringList.Create; // создадим список строк для ассет-паков
 
-  path:=ExtractFilePath(Application.ExeName) + 'asset_packs' + PathDelim;
+  path:=self.root_application_dir + 'asset_packs' + PathDelim;
+
 
   if FindFirst(path + '*', faAnyFile, sr) = 0 then
   begin

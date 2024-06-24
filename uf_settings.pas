@@ -14,18 +14,15 @@ type
 
   Tf_settings = class(TForm)
     bt_save_all: TButton;
-    bt_test: TButton;
     cb_play_music: TCheckBox;
     cb_select_asset_pack: TComboBox;
     cb_play_sounds: TCheckBox;
-    lb_test: TLabel;
     lb_music_volume: TLabel;
     lb_sounds_volume: TLabel;
     lb_select_asset_pack: TLabel;
     tb_music_volume: TTrackBar;
     tb_sounds_volume: TTrackBar;
     procedure bt_save_allClick(Sender: TObject);
-    procedure bt_testClick(Sender: TObject);
     procedure cb_play_musicChange(Sender: TObject);
     procedure cb_play_soundsChange(Sender: TObject);
     procedure cb_select_asset_packChange(Sender: TObject);
@@ -67,11 +64,6 @@ begin
   settings_manager.set_sounds_state_on(self.cb_play_sounds.Checked);
   settings_manager.set_sounds_volume(self.tb_sounds_volume.Position);
   settings_manager.set_music_volume(self.tb_music_volume.Position);
-end;
-
-procedure Tf_settings.bt_testClick(Sender: TObject);
-begin
-  self.lb_test.Caption:=settings_manager.find_and_get_main_application_dir;
 end;
 
 procedure Tf_settings.cb_play_musicChange(Sender: TObject);

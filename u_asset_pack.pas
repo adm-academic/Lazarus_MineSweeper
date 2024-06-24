@@ -1,4 +1,4 @@
-{
+﻿{
 Объект для доступа к ассет паку. Тайлам и конфигурации. Это сделано для скорости и
 гибкости итоговой программы.
 }
@@ -13,8 +13,13 @@ unit u_asset_pack;
 interface
 
 uses
+{$ifdef FPC}
   Classes, SysUtils, Graphics
   ,u_minesweeper_types;
+{$else}
+  Classes, SysUtils, FMX.Graphics
+  ,u_minesweeper_types;
+{$endif}
 
 const
    assets_ini_filename='asset.ini';
@@ -77,7 +82,15 @@ type
 
 implementation
 uses
-  Dialogs,Forms;
+{$ifdef FPC}
+  Dialogs,Forms
+  , u_settings_manager;
+{$else}
+  FMX.Dialogs,FMX.Forms
+  , u_settings_manager;
+{$endif}
+
+
 
 { T_Asset_Pack }
 constructor T_Asset_Pack.Create( par_asset_pack_dirname: String );
@@ -132,7 +145,7 @@ procedure T_Asset_Pack.init_dir_and_file_names(par_asset_pack_dirname: String);
 begin
   self.asset_pack_dirname:=par_asset_pack_dirname; // сохраним имя директории ассет пака
 
-  self.assets_containing_dirname_full_path:= ExtractFilePath(Application.ExeName) +
+  self.assets_containing_dirname_full_path:=settings_manager.get_root_application_dir +
         PathDelim + 'asset_packs'  + PathDelim; // директория в которой лежат ассет-паки
 
   self.asset_pack_current_full_patch:=self.assets_containing_dirname_full_path +

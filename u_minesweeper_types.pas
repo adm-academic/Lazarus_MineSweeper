@@ -1,4 +1,4 @@
-{
+﻿{
  Для исключения циклических зависимостей в модулях программы, выделил основные типы данных
  в этот отдельный модуль.
 }
@@ -14,7 +14,12 @@ unit u_minesweeper_types;
 interface
 
 uses
-  Classes, SysUtils, Graphics ;
+{$ifdef FPC}
+   Classes, SysUtils, Graphics ;
+{$else}
+   Classes, SysUtils, FMX.Graphics ;
+{$endif}
+
 
 type
   { Тип перечисления для обозначения сложности игры }
