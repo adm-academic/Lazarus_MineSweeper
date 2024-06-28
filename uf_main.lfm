@@ -1,8 +1,9 @@
 object f_main: Tf_main
-  Left = 396
+  Left = 390
   Height = 523
-  Top = 133
+  Top = 128
   Width = 717
+  ActiveControl = pn_game
   Caption = 'Логическая игра "Сапёр".'
   ClientHeight = 523
   ClientWidth = 717

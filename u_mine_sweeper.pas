@@ -620,6 +620,7 @@ end;
 procedure T_Mine_Sweeper.resize_game_grid(new_tile_size: integer);
 begin
   self.actual_tile_size :=  new_tile_size;
+  self.asset_pack_object.actualize_size(self.actual_tile_size);
 
   { подгоним размер дро-грида под (размер тайлов*число тайлов + 2 пикселя) }
   {$IfDef LINUX}
