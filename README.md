@@ -1,7 +1,9 @@
 # Lazarus_MineSweeper
-Игра "Сапёр" на Lazarus Object Pascal
+Игра "Сапёр" на Object Pascal.
 
 Lazarus Version 3.4, Developed and checked on OpenSuSe Linux 15.5 at 2024 year.
+
+Для начала будет написана на Lazarus LCL, позднее адаптирую под Delphi CE FMX.
 
 _______________________________________________________________________________
 
