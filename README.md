@@ -29,3 +29,9 @@ _______________________________________________________________________________
 После победы никнейм игрока внесён в локальный список рекордов.
 
 ![alt text](https://github.com/adm-academic/Lazarus_MineSweeper/blob/main/screenshots/records.png?raw=true)
+
+
+Метрики cloc для версии 1.0:
+![alt text](https://github.com/adm-academic/Lazarus_MineSweeper/blob/main/screenshots/cloc.png?raw=true)
+
+
