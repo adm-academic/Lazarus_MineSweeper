@@ -7,6 +7,8 @@ Lazarus Version 3.4, Developed and checked on OpenSuSe Linux 15.5 at 2024 year.
 
 _______________________________________________________________________________
 
+![alt text](https://github.com/adm-academic/Lazarus_MineSweeper/blob/main/screenshots/screen-1.gif?raw=true)
+_______________________________________________________________________________
 
 Стартовое состояние, после загрузки в память объекта класса T_Mine_Sweeper:
 ![alt text](https://github.com/adm-academic/Lazarus_MineSweeper/blob/main/screenshots/start.png?raw=true)
